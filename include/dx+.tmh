@@ -1,0 +1,208 @@
+// -----------------------------------------------------------------------------
+//  DX+ Module for Thrustmaster TARGET
+// -----------------------------------------------------------------------------
+//  DX+ Module header
+//  Version:  1.0
+//  Author:   Sedenion
+// -----------------------------------------------------------------------------
+//  Desc:
+//  Functions and definitions for the DX+ Module. This module allow to create a
+//  custom "Thrustmaster Combined" virtual device with more than 32 buttons. It
+//  also provides macros defines to map to 120 HID (DX) virtual buttons.
+//
+//  Usage: 
+//  The standard TARGET implementation use a PlugGame() function to create a
+//  the "Thrustmaster Combined" virtual device. This function take a struct as
+//  parameter who defines the virtual device properties. The PlugGame() function
+//  is called within the Init() function declared in "target.tmh" file.
+//
+//  This module simply provides a customised Init() function which allow to 
+//  create a non-defaut "Thrustmaster Combined" virtual device with custom 
+//  properties using a custom struct.
+//
+//  I) Installation
+//
+//    - Include this file using the "include" keywork in your main
+//      tmc profile file.
+//
+//      example:
+//              include "dx+.tmh"
+//
+//    - Within the main() function, the call to standard Init() function must be 
+//      replaced by the DX+ version DXpInit() to allow choosing button count for 
+//      the virtual device.
+//
+//      example: 
+//              int main()
+//              {
+//                if(DXpInit(&EventHandle, 64)) return 1;
+//              }
+//
+//    - The DXpInit() accept a second parameter which is the count of button you
+//      want for your virtual device. This count must be less or equal to 120.
+//
+//  II) Using DX# macros
+//
+//    - The standard TARGET implementation allow only DX1 to DX32 macros to be
+//      mapped. The DX+ Module allow you to use from DX1 to DX120. 
+//
+//      example: 
+//              MapKey(&Joystick, TG1,  DX119);
+//              MapKey(&Joystick, TG2,  DX120);
+//      
+// -----------------------------------------------------------------------------
+
+// ----------------------------- Global Defines --------------------------------
+
+// Additionnal defines for 120 DX buttons
+define DX33			3032
+define DX34			3033
+define DX35			3034
+define DX36			3035
+define DX37			3036
+define DX38			3037
+define DX39			3038
+define DX40			3039
+define DX41			3040
+define DX42			3041
+define DX43			3042
+define DX44			3043
+define DX45			3044
+define DX46			3045
+define DX47			3046
+define DX48			3047
+define DX49			3048
+define DX50			3049
+define DX51			3050
+define DX52			3051
+define DX53			3052
+define DX54			3053
+define DX55			3054
+define DX56			3055
+define DX57			3056
+define DX58			3057
+define DX59			3058
+define DX60			3059
+define DX61			3060
+define DX62			3061
+define DX63			3062
+define DX64			3063
+define DX65			3064
+define DX66			3065
+define DX67			3066
+define DX68			3067
+define DX69			3068
+define DX70			3069
+define DX71			3070
+define DX72			3071
+define DX73			3072
+define DX74			3073
+define DX75			3074
+define DX76			3075
+define DX77			3076
+define DX78			3077
+define DX79			3078
+define DX80			3079
+define DX81			3080
+define DX82			3081
+define DX83			3082
+define DX84			3083
+define DX85			3084
+define DX86			3085
+define DX87			3086
+define DX88			3087
+define DX89			3088
+define DX90			3089
+define DX91			3090
+define DX92			3091
+define DX93			3092
+define DX94			3093
+define DX95			3094
+define DX96			3095
+define DX97			3096
+define DX98			3097
+define DX99			3098
+define DX100		3099
+define DX101		3100
+define DX102		3101
+define DX103		3102
+define DX104		3103
+define DX105		3104
+define DX106		3105
+define DX107		3106
+define DX108		3107
+define DX109		3108
+define DX110		3109
+define DX111		3110
+define DX112		3111
+define DX113		3112
+define DX114		3113
+define DX115		3114
+define DX116		3115
+define DX117		3116
+define DX118		3117
+define DX119		3118
+define DX120		3119
+
+// ---------------------------- Global Functions -------------------------------
+
+
+// Custom Init function for DX+
+//
+// - param[in] h Pointer to EventHandle() callback function.
+// - param[in] b Desired buttons count for "Thrustmaster Combined" virtual device.
+// - param[in] cfg Virtual devices to create.
+//
+// Mimic the TARGET standard implementation Init() function. You should call this
+// function instead of the standard implementation one within the main() function.
+//
+int DXpInit(alias h, int b=64, int cfg=CREATE_JOYSTICK+CREATE_KEYBOARD+CREATE_MOUSE)
+{ 
+  // This part is the standard Init process by Thrustmaster
+	&Throttle = GetIndexJoy(Select(&Throttle));	// expect a Warthog Throttle to be plugged on USB
+	&Joystick = GetIndexJoy(Select(&Joystick));	// expect a Warthog Stick to be plugged on USB
+	&LMFD = GetIndexJoy(Select(&LMFD));			// expect a LMFD to be plugged on USB
+	&RMFD = GetIndexJoy(Select(&RMFD));			// expect a RMFD to be plugged on USB
+	&HCougar = GetIndexJoy(Select(&HCougar));	// expect a Hotas Cougar to be plugged on USB
+	&T16000 = GetIndexJoy(Select(&T16000));		// expect a T16000 to be plugged on USB
+	&T16000L = GetIndexJoy(Select(&T16000L));	// expect a T16000 left handed to be plugged on USB
+	&TWCSThrottle = GetIndexJoy(Select(&TWCSThrottle));	// expect a TWCSThrottle to be plugged on USB
+	&TFRPRudder = GetIndexJoy(Select(&TFRPRudder));		// expect a TFRPRudder to be plugged on USB
+  
+  // This part is modified for DX+ Module
+  if(b > 120) b = 120; // clamp b to 120 (more than 120 cause BSOD)
+  virtualj.ButtonsNumber = b; // Change virtual device param
+	//if(cfg & CREATE_JOYSTICK) PlugGame(&virtualj, "Thrustmaster Combined"); // create virtual device
+	if(cfg & CREATE_JOYSTICK) PlugGame(&virtualj, "ThrustMaster Warthog Combined");
+	// This part is the standard Init process by Thrustmaster
+	if(cfg & CREATE_KEYBOARD) PlugKeyboard();
+	if(cfg & CREATE_MOUSE) PlugMouse(1);
+	&_evh = &h;
+	SetEventHandler(&DefEventHandler); 
+	SEQ();		// initialize SEQ function as VPN	
+	CHAIN();	// initialize CHAIN function as VPN	
+	AXMAP2();
+	int i; while(i<256) { USB[i] = i+1000; i = i+1; }					// fill the USB table
+	MapList(&Joystick, &JoystickMap);	// default DX buttons mapping for all devices
+	MapList(&Throttle, &ThrottleMap);
+	MapList(&HCougar, &JoystickMap);
+	MapList(&HCougar, &HCougarMap);
+	MapList(&LMFD, &MFDMap);
+	MapList(&RMFD, &MFDMap);
+	MapList(&T16000, &T16000Map);
+	MapList(&T16000L, &T16000Map);
+	MapList(&TWCSThrottle, &TWCSThrottleMap);
+	MapList(&TFRPRudder, &TFRPRudderMap);
+	i=elements(&vbtntbl); while(i>0) 	// initialize Throttle virtual buttons with 1
+	{
+		i = i-1;
+		if(vbtntbl[i]) Throttle[vbtntbl[i]] = 1;
+	}
+	HCougar[DFM] = 1;					// initialize Cougar virtual buttons with 1
+	HCougar[SPDM] = 1;
+	DXAxis(MOUSE_X_AXIS, 0);
+	DXAxis(MOUSE_Y_AXIS, 0);
+	
+	// This part is modified for DX+ Module
+	printf("Device created using DX+ Module with %d buttons\xa", b); // peacefull message
+}

@@ -1,0 +1,211 @@
+// Defaults
+// tap, double-tap, 0.5s hold, 1s hold, 10s hold, idefinite hold
+// define PIPPressDelay          333              // Timing for PIPs (ms)
+define PIPPressDelay          500                 // Timing for PIPs (ms)
+//define DTPressDelay           365                 // Timing for Pinky Double Tap (ms) (default = 365ms)
+define DTPressDelay           250                 // Timing for Pinky Double Tap (ms) (default = 250ms)
+define UserDTPinkyKeyBind     flightAssist        // Function to 
+define SlewToLAternal         1
+
+define SYS				1
+define ENG				2
+define WEP				3
+define MID				4
+
+/*
+define faLED 1
+define rcLED 2
+define srLED 3
+define csLED 4
+define lgLED 5
+*/
+
+define CruiseOnThrottle 	1	// Enable Supercruise on Throttle @ 100% and 0% = 1 (default)	Disable = 0  [HOLD Pinky Trigger or CMS Hat to activate @ 100%/0%]
+define TFULL_DEADZONE		5						// Set the Throttle 'Full Range' Deadzone %	  (default = 5)	(Use the Device Analyzer to validate) (Note: Don't set this too high! [Max ~15%] It will intefer with the FSS tuning)
+
+int pipMode                 = 2;             // 1: Pinky Audio control, 2: Long press audio control
+int DoubleTapPT             = 0;             // Tracks state of Double Tap function on Pinky Trigger
+int DoubleTapPTdown         = 0;
+int DoubleTapPOV            = 0;             // Tracks state of Double Tap POV 
+int panelMode               = 0;             // flag set when UI panel focused
+
+int mThrottleFwdOnly, mThrottleFullScale, mThrottlePrecision, mThrottleFwdNonLinear, mThrottleFullNonLinear, mThrottleFullScaleCustom, mThrottleTrimmed;
+int SyncLEFTTHRAxis = 1;
+int AxisCurveMod;
+
+int initPIPMapper(int maxPIPx=0, int minPIPy=0, int balPIPz=0) {	
+    int PIPx, PIPy, PIPz;									
+	
+    if (maxPIPx == 0) PIPx = 0;						// maxPIPx gets 4 PIPs (balanced 1 PIP on others if no 2nd parameter set)
+	else if (maxPIPx == SYS) PIPx = PULSE+powerSys;
+	else if (maxPIPx == ENG) PIPx = PULSE+powerEng;
+	else if (maxPIPx == WEP) PIPx = PULSE+powerWep;
+	
+	if (minPIPy == 0) PIPy = 0;						// minPIPy gets 2 PIPs
+	else if (minPIPy == SYS) PIPy = PULSE+powerSys;
+	else if (minPIPy == ENG) PIPy = PULSE+powerEng;
+	else if (minPIPy == WEP) PIPy = PULSE+powerWep;
+	
+	if 		(balPIPz == 0)	 PIPz = 0;						// balPIPz overrides minPIPy and sets 3 PIPs each 'balanced' for max & min PIPs
+	else if (balPIPz == MID) PIPz = PIPy;
+	
+	ActKey(KEYON+CHAIN(										// MACRO: Send PIP Configuration
+		PULSE+balancePower, D(),						// If NO parameters set, only Balance Power
+		PIPx, D(),
+		PIPy, D(),
+		PIPx, D(),
+		PIPx, D(),
+		PIPz));					
+}	
+
+// FUNCTION: Enables User Definable 'Double Tap' functionality on the Pinky Trigger [S4]
+int initUserHotSlotPinkyTrigger() {
+    if(DoubleTapPT == 0) {                                           // IF Single (First) Press  (DoubleTapPT starts at 0)
+	ActKey(KEYON+DOWN+PinkyTriggerDefault);                      // Trigger Standard DX4/JOY 4 mapping
+	DoubleTapPT = 1;                                             // Increment DoubleTapPT counter
+	DeferCall(DTPressDelay, &ActKey, KEYON+PULSE+EXEC("DoubleTapPT = 0;")); }  // Sets Double Tap Speed: After delay of 365ms,
+                                                                     //reset DoubleTapPT counter to 0 (This is your window to press Pinky Trigger again for double tap) 
+    else if(DoubleTapPT == 1) {                                      // IF Double (Second) Press
+	DoubleTapPT = 2;                                             // Increment DoubleTapPT counter (prevents further triggers until DoubleTapPT delay timer cycle completes)
+	//ActKey(KEYON+PULSE+UserDTPinkyKeyBind); } }                  // Trigger User Hot Slot Preference (*see User Preferences to set*)
+	
+	if(DoubleTapPTdown == 0) {
+      ActKey(KEYON+DOWN+UserDTPinkyKeyBind);
+      //ActKey(KEYON+PULSE+LedOn(faLED));
+      printf("Flight Assist ON\x0a");
+      
+      DoubleTapPTdown = 1;
+    } else {
+      ActKey(KEYON+UP+UserDTPinkyKeyBind);
+      printf("Flight Assist OFF\x0a");
+      //ActKey(KEYON+PULSE+LedOff(faLED));
+      DoubleTapPTdown = 0; 
+    }
+} }                 // ALTERNATE Config (enable if Double Tap Pinky Trigger needs a Hold action - remember to disable the line above!)
+
+
+//int AutoRepeat(int handler, int delay, alias proc, int param){ PostEvent(EV_USR+1+handler, &proc, param, -delay); }
+//int StopAutoRepeat(int handler){ RemoveEvent(EV_USR+1+handler); }
+//int DeferCall(int delay, alias proc, int param){ PostEvent(EV_USR, &proc, param, delay); }
+//int PulseKey(int key, int i=0){ Key(key, kb_pulse); }
+//int HoldKey(int key, int press)
+//{ 
+//	if(press) KeyD(key); else KeyU(key);
+//	return press;
+//}
+
+
+int initRepeatKey(int action) {
+  REXEC(0, 500, "ActKey(KEYON+PULSE+action);");
+}
+
+int initDoubleTap(int defaultAction, int doubleTapAction) {
+    if(DoubleTapPOV == 0) {
+	    ActKey(KEYON+PULSE+defaultAction);
+	    DoubleTapPOV = 1;
+        DeferCall(DTPressDelay, &ActKey, KEYON+PULSE+EXEC("DoubleTapPOV = 0;"));
+        }
+    else if(DoubleTapPOV == 1) {
+      DoubleTapPOV = 2;
+      ActKey(KEYON+PULSE+doubleTapAction); } }
+
+int initDoubleTapHold(int defaultAction, int doubleTapAction) {
+    if(DoubleTapPOV == 0) {
+      ActKey(KEYON+DOWN+defaultAction);
+      DoubleTapPOV = 1;
+      DeferCall(DTPressDelay, &ActKey, KEYON+PULSE+EXEC("DoubleTapPOV = 0;"));
+      }
+    else if(DoubleTapPOV == 1) {
+      DoubleTapPOV = 2;
+      ActKey(KEYON+PULSE+doubleTapAction); } }
+
+// HARDWARE: THROTTLE AXIS MAPPINGS //	Define All Axis Curves/Trim/Deadzones for Device
+// THROTTLE UTILITY FUNCTIONS //
+
+int initSetThrottleCurves() {						// Three different presets are selectable On-The-Fly
+    mThrottleFwdOnly	     = EXEC("_doThrottleFwdOnly();");		// Initialising Throttle Forward Only Preset (SRV etc)
+    mThrottleFwdNonLinear    = EXEC("_doThrottleFwdNonLinear();");	// Initialising Throttle Forward Only Non-Linear Preset (SRV etc)
+    mThrottleFullScale	     = EXEC("_doThrottleFullScale();");		// Initialising Throttle Full Range & Make Throttle Linear (Default)
+    mThrottleFullNonLinear   = EXEC("_doThrottleFullNonLinear();");	// Initialising Throttle Full Range & Make Throttle Non-Linear
+    mThrottleFullScaleCustom = EXEC("_doThrottleFullScaleCustom();");	// Initialising Throttle Full Range & Max Shorter @ 80% Preset (ALTERNATIVE)
+    mThrottleTrimmed	     = EXEC("_doThrottleTrimmed();");		// Initialising Throttle Trimmed 25% @ Beginning/End Preset (ALTERNATIVE)
+    mThrottlePrecision	     = EXEC("_doThrottlePrecision();"); }	// Initialising Throttle Precision Preset (Docking etc)
+
+define ThrottlePresetUP 	mThrottleFwdOnly	// 7 Presets: 	mThrottleFwdOnly	 [   0 -> 100]	mThrottleFwdNonLinear [   0 ~> 100]
+define ThrottlePresetMID 	mThrottleFullScale	// To	 	mThrottleFullScale	 [-100 -> 100]	mThrottleFullNonLinear[-100 ~> 100]
+define ThrottlePresetDOWN 	mThrottlePrecision	// Choose! 	mThrottleFullScaleCustom [-100 -> 80 ]	mThrottlePrecision    [ -50 -> 50 ]
+
+int SetThrottle() {	// Prevents Throttle jumping around on mode changes
+    DXAxis(DX_THROTTLE_AXIS, -AxisVal(Throttle[THR_RIGHT], &axdata));
+    if(SyncLEFTTHRAxis) { DXAxis(DX_THROTTLE_AXIS, -AxisVal(Throttle[THR_LEFT], &axdata)); } }
+
+int _trimThrottleAxes(int value) { 					  // *TrimDXAxis(axis, +/-1024) trim is additive, SET forces trim value, CURRENT reads axis.pos
+    TrimDXAxis(DX_THROTTLE_AXIS, SET(value));
+    if(SyncLEFTTHRAxis) { TrimDXAxis(DX_THROTTLE_AXIS, SET(value)); } }
+	
+int _setThrottleSCurve(int lower=0, int center=0, int upper=0, int curve=0, float zoom=0) { // *SetSCurve(&Device, axis, left_deadzone%, center_deadzone%, right_deadzone%, curve(-20...20), scale)
+    SetSCurve(&Throttle, THR_RIGHT, lower, center, upper, curve, zoom);						
+    if(SyncLEFTTHRAxis) { SetSCurve(&Throttle, THR_LEFT, lower, center, upper, curve, zoom); } }
+
+int _setThrottleJCurve(float in, float out) {		// *SetJCurve(&device, axis, physical axis value%, DirectX output value%)
+    SetJCurve(&Throttle, THR_RIGHT, in, out);
+    if(SyncLEFTTHRAxis) { SetJCurve(&Throttle, THR_LEFT, in, out); } }
+
+int _setThrottleCustomCurve(int list) {			// *SetCustomCurve(&device, axis name, LIST(Axis physical position 1, Axis output Value 1, Axis physical position 2, Axis output value 2, …)
+    SetCustomCurve(&Throttle, THR_RIGHT, list);
+    if(SyncLEFTTHRAxis) {	SetCustomCurve(&Throttle, THR_LEFT, list); } }
+
+// MAP THROTTLE AXIS PRESETS //			// Three different presets are selectable On-The-Fly
+int _doThrottleFwdOnly() {			// FWD ONLY : Initialising Throttle Forward Only Preset (SRV etc)
+    _trimThrottleAxes(-1024);
+    if(CruiseOnThrottle) {	_setThrottleSCurve(0, -95, 0, 0);  }	// Trims Axis 5% when Supercruise On Throttle Active
+    else 		 {	_setThrottleSCurve(0, -100, 0, 0); }
+    printf("Throttle Profile: FORWARD ONLY [0 -> 100]\x0a");
+    SetThrottle(); }
+
+int _doThrottleFwdNonLinear() {				// FWD ONLY NL : Initialising Throttle Forward Only Non-Linear Preset (SRV etc)
+    _trimThrottleAxes(-1024);				// <Unmapped by Default> (See User Preferences to Set)
+    _setThrottleCustomCurve(AxisCurveMod);		// DX-SLIDER Non-Linear progression Curve
+    SetThrottle(); }
+
+int _doThrottleFullScale() {				// FULL SCALE : Initialising Throttle Full Range & Make Throttle Linear (Default)
+    _trimThrottleAxes(0);				// Initialising Throttle Full Scale Preset
+    if(CruiseOnThrottle) { _setThrottleSCurve(0, TFULL_DEADZONE, 5, 0); }			// Trims Axis 5% when Supercruise On Throttle Active
+    else 		 { _setThrottleSCurve(0, TFULL_DEADZONE, 0, 0); }			// ..(Alternative= "_setThrottleJCurve(50, 50);")
+    printf("Throttle Profile: FULL SCALE [-100 -> 100]\x0a");
+    SetThrottle(); }
+
+int _doThrottleFullNonLinear() {			// FULL SCALE NL : Initialising Throttle Full Range & Make Throttle Non-Linear
+    _trimThrottleAxes(0);				// <Unmapped by Default> (See User Preferences to Set)
+    _setThrottleCustomCurve(AxisCurveMod);		// DX-SLIDER Non-Linear progression Curve
+    SetThrottle(); }
+
+int _doThrottleFullScaleCustom() {			// FULL SCALE CUST : Initialising Throttle Full Range & Max Shorter @ 80% Preset (ALTERNATIVE)
+    _trimThrottleAxes(0);				// Slightly Shorter Forward travel distance for my RSeat RS1 Cockpit setup. :)
+    _setThrottleJCurve(80, 100);			// <Unmapped by Default> (See User Preferences to Set)
+    SetThrottle(); }
+
+int _doThrottleTrimmed() {				// TRIMMED : Initialising Throttle Trimmed 25% @ Beginning/End Preset (ALTERNATIVE)
+    _trimThrottleAxes(0);				// <Unmapped by Default> (See User Preferences to Set)
+    _setThrottleSCurve(-25, 0, -25, 0);
+    SetThrottle(); }
+
+int _doThrottlePrecision() {				// PRECISION : Initialising Throttle Precision Preset (Docking etc)
+    _trimThrottleAxes(0);				// Allows Throttle Movement ONLY to the middle of blue zone
+    _setThrottleSCurve(0, 2, 0, 4, -2);
+    printf("Throttle Profile: PRECISION [-50 -> 50]\x0a");
+    SetThrottle(); }
+
+
+  // https://github.com/TarodBOFH/ThrustmasterTARGETScripting/blob/master/Elite%20Dangerous.tmc
+  // https://github.com/jeffboulanger/tm-target-scripts/blob/master/DCS_A-10C.tmc
+  // https://github.com/grufffta/elite-thrustmaster-fcs/blob/master/EliteDangerous.tmc
+  // https://simhq.com/forum/ubbthreads.php/topics/3853204/Re:_Power_of_scripting?_beep_f    
+
+  // Finally got what I want: gearup/gear down, first led control with the gear, long press for emergency 
+  // extend, and still working original DX button on virtual controller
+  //MapKey(&Throttle, LDGH, CHAIN(DX54, TEMPO(CHAIN(SEQ(PULSE+L_CTL+'g', PULSE+L_SHIFT+'g'),
+  //                                                SEQ(LED(&Throttle, LED_ONOFF, LED_CURRENT+LED1),
+  //                                                    LED(&Throttle, LED_ONOFF, LED_CURRENT-LED1))),
+  //                                                    PULSE+L_CTL+L_SHIFT+'g',1000)));
+

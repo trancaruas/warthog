@@ -1,0 +1,300 @@
+// Keybindings
+define PinkyTriggerDefault    VPNK
+
+// Thottle mode switch 
+define throttleUpKey SPDF
+define throttleMidKey SPDM
+define throttleDownKey SPDB
+
+// Free
+/* USB[0x11]         // N */
+/* USB[0x0E]         // K */
+/* USB[0x10]         // M */
+/* L_CTL+L_SHIFT+USB[0x56] // Ctrl + Shift + Num - */
+/* USB[0x54]               // Num / */
+/* USB[0x63]               // Num . */
+/* USB[0x3D]               // F4  Used in EDHM */
+/* USB[0x24]               // 7   multicrew */
+/* L_ALT+USB[0x22]         // ALT+5 */
+/* L_ALT+USB[0x23]         // ALT+6 */
+/* L_ALT+USB[0x24]         // ALT+7 */
+/* L_ALT+USB[0x25]         // ALT+8 */
+/* L_ALT+USB[0x09]       // Alt + F */
+/* L_SHIFT+USB[0x09]     // Shift + F */
+/* USB[0x19]             // V */
+/* L_SHIFT+USB[0x18]     // Shift + U */
+
+// Primary & Secondary fire
+define primaryFire             USB[0x58]               // Num Enter
+define secondaryFire           USB[0x57]               // Num +
+
+// Targeting
+define targetAhead            USB[0x17]               // T
+define targetHighest          L_SHIFT+USB[0x17]       // Shift + T
+define targetNext             USB[0x0A]               // G
+define targetPrev             L_SHIFT+USB[0x0A]       // Shift + G
+define targetNextHostile      USB[0x0B]               // H
+define targetPrevHostile      L_SHIFT+USB[0x0B]       // Shift + H
+define targetNextSubsys       USB[0x1C]               // Y
+define targetPrevSubsys       L_SHIFT+USB[0x1C]       // Shift + Y
+define targetNextRoute        L_CTL+USB[0x17]         // Ctrl + T
+
+// Weapon management
+define deployHardpoints       USB[0x18]               // U
+define firegroupNext          USB[0x37]               // .
+define firegroupPrev          L_SHIFT+USB[0x37]       // Shift + .
+
+// Misc
+define navLight               USB[0x49]               // INSERT
+define nightVision            L_SHIFT+USB[0x49]       // Shift + INSERT
+define landingGear            USB[0x0F]               // L
+define cargoScoop             USB[0x4A]               // Home
+define jettisonCargo          L_CTL+L_SHIFT+USB[0x4A] // Ctrl + Shift + Home
+define cockpitMode            USB[0x31]               // '\'
+define flightAssist           USB[0x1D]               // Z
+define engineBoost            USB[0x2B]               // TAB
+define frameshiftDrive        USB[0x0D]               // J
+define superCruise            L_SHIFT+USB[0x0D]       // Shift + J
+define hyperspaceJump         L_CTL+USB[0x0D]         // Ctrl + J
+define rotationalCorrection   L_SHIFT+USB[0x2E]       // Shift + =
+define toggleOrbitLines       USB[0x2E]               // =
+define sensorZoomUP	      USB[0x4B] 	      // Page Up (PgUp)
+define sensorZoomDN 	      USB[0x4E] 	      // Page Down (PgDn)
+
+//define InternalVoiceCommsPTT
+define hideShipGUI 	      L_CTL+L_ALT+USB[0x19]   // Ctrl + Alt + V
+define hideCameraGUI	      L_ALT+USB[0x19]         // Alt + V
+define showFramerate 	      L_CTL+USB[0x40]         // Alt + F7
+define showConnectionStatus   L_CTL+USB[0x41]         // Alt + F8
+define showCQCScoreboard      L_ALT+USB[0x42]         // Alt + F9
+define highResScreenshot      L_ALT+USB[0x43]         // Alt + F10
+define weaponColour	      L_ALT+USB[0x30]	      // Alt + ]
+define engineColour 	      L_ALT+USB[0x2F]         // Alt + [
+
+// Panel/UI Navigation
+//define UIEscape               USB[0x2A]               // Backspace
+define UIEscape               USB[0x35]               // Tilde
+define UISelect               USB[0x2C]               // Space
+
+// TODO Check what does these do
+define UIToggle               USB]0x55]               // Num *
+define UIFocus                USB[0x56]               // Num -
+
+define panelUp                USB[0x1A]               // W
+define panelDown              USB[0x16]               // S
+define panelLeft              USB[0x04]               // A
+define panelRight             USB[0x07]               // D
+define panelLeftTab           L_SHIFT+USB[0x04]       // Shift + A
+define panelRightTab          L_SHIFT+USB[0x07]       // Shift + D
+define panelNextPage          L_CTL+USB[0x07]         // Ctrl + D
+define panelPrevPage          L_CTL+USB[0x04]         // Ctrl + A
+define targetPanel            USB[0x1E]               // 1
+define commsPanel             USB[0x1F]               // 2
+define rolePanel              USB[0x20]               // 3
+define systemPanel            USB[0x21]               // 4
+define quickCommsPanel        USB[0x28]               // Enter
+define systemMap              USB[0x33]               // ;
+define galaxyMap              L_SHIFT+USB[0x33]       // Shift + ;
+define menuLog                USB[0x13]		      // P
+define friendsView            L_SHIFT+USB[0x13]       // Shift + P
+
+
+
+// Thrust
+//define thrustForward          USB[0x1A]             // W
+//define thrustBackward         USB[0x16]             // S
+//define thrustUp               USB[0x15]             // R
+//define thrustDown             USB[0x09]             // F
+//define thrustLeft             USB[0x14]             // Q
+//define thrustRight            USB[0x08]             // E
+define thrustReverse          L_CTL+USB[0x15]         // Ctrl + R
+define throttleReverse        USB[0x15]               // R
+//define pitchUp	      'T'	      	      // LSHIFT+T
+//define pitchDown	      'G'	      	      // LSHIFT+G
+//define rollLeft	      'W'	      	      // LSHIFT+W 
+//define rollRight	      'S'	      	      // LSHIFT+S 
+//define yawLeft	      'Q'	      	      // LSHIFT+Q
+//define yawRight	      'E'	      	      // LSHIFT+E
+//define swapRollYaw	      USB[0x58]	      	      // NUMPAD ENTER
+//define setSpeedNeg100       USB[0x56]       	      // NUMPAD -
+//define setSpeedNeg75 	      USB[0x61]       	      // NUMPAD 9
+//define setSpeedNeg50 	      USB[0x60]       	      // NUMPAD 8
+//define setSpeedNeg25 	      USB[0x5F]	      	      // NUMPAD 7
+//define setSpeed0 	      USB[0x1B]       	      // X
+//define setSpeed25 	      USB[0x59]       	      // NUMPAD 1
+//define setSpeed50 	      USB[0x5A]       	      // NUMPAD 2
+//define setSpeed75 	      USB[0x5B]       	      // NUMPAD 3
+//define setSpeed100 	      USB[0x57]       	      // NUMPAD +
+//define increaseThrottle     USB[0x1A]       	      // W
+//define decreaseThrottle     USB[0x16]       	      // S
+//define alternativeFlightMode	USB[0x40]     	      // F7
+
+// PIP Management
+define powerEng               USB[0x52]               // UP Arrow
+define powerWep               USB[0x4F]               // RIGHT Arrow
+define powerSys               USB[0x50]               // LEFT Arrow
+define balancePower           USB[0x51]               // DOWN Arrow
+
+// Playlist
+define galNetAudioPlayPause   L_ALT+KP8               // Alt + Num 8
+define galNetAudioPrev        L_ALT+KP4               // Alt + Num 4
+define galNetAudioNext        L_ALT+KP6               // Alt + Num 6
+define galNetAudioClearQueue  L_ALT+KP2               // Alt + Num 2
+
+// Galaxy map                 (Note: These are mapped in ED Bindings directly)
+//define galMapPitchUp	      USB[0x17]	              // T
+//define galMapPitchDown      USB[0x0A]	              // G
+//define galMapYawLeft	      USB[0x14]	              // Q
+//define galMapYawRight	      USB[0x08]	              // E
+//define galMapTranslateForward  USB[0x1A]	      // W
+//define galMapTranslateBack  USB[0x16]	              // S
+//define galMapTranslateLeft  USB[0x04]	              // A
+//define galMapTranslateRight USB[0x07]	              // D
+//define galMapTranslateUp    USB[0x15]	              // R
+//define galMapTranslateDown  USB[0x09]	              // F
+//define galMapZoomIn	      USB[0x1D]	              // Z
+//define galMapZoomOut	      USB[0x1B]	              // X
+
+// Headlook
+define headlook               KP5                     // Num 5
+define headlookReset          L_CTL+KP5               // Ctrl + Num 5
+define headlookUp             KP8                     // Num 8
+define headlookDown           KP2                     // Num 2
+define headlookLeft           KP4                     // Num 4
+define headlookRight          KP6                     // Num 6
+
+// Cooling & Countermeasures
+define silentRun              USB[0x4C]               // Delete
+define chargeECM              USB[0x4D]               // End
+define chaffLaunch            USB[0x06]               // C
+define shieldCell             L_CTL+USB[0x06]         // Ctrl + C
+define heatSink               L_SHIFT+USB[0x06]       // Shift + C
+
+// FSS
+define fssEnter               USB[0x38]               // '/'
+define fssExit                L_SHIFT+USB[0x38]       // Shift + '/'
+define fssUp                  USB[0x1A]               // W
+define fssDown                USB[0x16]               // S
+define fssYawRight            USB[0x07]               // D
+define fssYawLeft             USB[0x04]               // A
+define fssZoomIn              USB[0x15]               // R
+define fssZoomOut             USB[0x09]               // F
+define fssTuneRight           USB[0x08]               // E
+define fssTuneLeft            USB[0x14]               // Q
+define fssTarget              USB[0x17]               // T
+define fssHonk                USB[0x19]               // V
+define fssHelp                USB[0x06]               // C
+
+// Multicrew 		      (Note: These are not currently mapped in ED)
+//define multiCrewModeToggle	   
+//define multiCrewPrimaryFire	   
+//define multiCrewSecondaryFire	   
+//define multiCrewPrimaryUtilFire  
+//define multiCrewSecondaryUtilFire
+//define multiCrewCycleUIForward   
+//define multiCrewCycleUIBack	   
+
+// Wings & Fighters
+define selectWingman1		USB[0x25] 	      // 8
+define selectWingman2		USB[0x26] 	      // 9
+define selectWingman3		USB[0x27] 	      // 0
+define wingmanTarget            USB[0x0C]             // I
+define wingmanNavlock		L_SHIFT+USB[0x23]     // Shift + I
+define fighterOpen   		L_CTL+KP5	      // Ctrl + Num 5
+define fighterDock   		L_CTL+KP2	      // Ctrl + Num 2
+define fighterDefend 	        L_CTL+KP1	      // Ctrl + Num 1
+define fighterAggr   		L_CTL+KP7	      // Ctrl + Num 7
+define fighterAttack 	        L_CTL+KP9	      // Ctrl + Num 9
+define fighterNoFire 	        L_CTL+KP3	      // Ctrl + Num 3
+define fighterHold   		L_CTL+KP4	      // Ctrl + Num 4
+define fighterFollow 	        L_CTL+KP6	      // Ctrl + Num 6
+
+// SRV
+/*
+define SRVHandbrake 		USB[0x1B] 	      // X
+define SRVTurret 		USB[0x18]	      // U	(same as deploy/retract Hardpoints
+define SRVVerticalThrust 	USB[0x15] 	      // R      (same as boost)
+define SRVRecallDismissShip	L_ALT+USB[0x1B]	      // LALT+X
+*/
+
+// Camera suit                (Note: These are mapped in ED Bindings directly)
+define extCamera	      USB[0x36]               // ,
+define extCameraSRV	      USB[0x36]               // ,
+//define previousCamera	      L_ALT+USB[0x1E]	      // LALT+1
+//define nextCamera	      L_ALT+USB[0x1F]	      // LALT+2
+define enterFreeCameraMode    L_SHIFT+USB[0x36]       // Shift + ,
+define exitFreeCameraMode     L_SHIFT+USB[0x36]       // Shift + ,
+//define cameraPreset1	      L_CTL+USB[0x1E]	      // LCTRL+1		(Cockpit FRONT)
+//define cameraPreset2	      L_CTL+USB[0x1F]	      // LCTRL+2		(Cockpit BACK)
+//define cameraPreset3	      L_CTL+USB[0x20]	      // LCTRL+3		(Commander 1)
+//define cameraPreset4	      L_CTL+USB[0x21]	      // LCTRL+4		(Commander 2)
+//define cameraPreset5	      L_CTL+USB[0x22]	      // LCTRL+5		(Co-Pilot 1)
+//define cameraPreset6	      L_CTL+USB[0x23]	      // LCTRL+6		(Co-Pilot 2)
+//define cameraPreset7	      L_CTL+USB[0x24]	      // LCTRL+7		(Ship FRONT)
+//define cameraPreset8	      L_CTL+USB[0x25]	      // LCTRL+8		(Ship BACK)
+//define cameraPreset9	      L_CTL+USB[0x26]	      // LCTRL+9		(Ship LOW)
+//define toggleCameraHUD 	
+//define cameraDecreaseSpeed 	
+//define cameraIncreaseSpeed 	
+define cameraZoomIn	       USB[0x30]	      // ]
+define cameraZoomOut	       USB[0x2F]	      // [
+//define cameraForward 
+//define cameraBack 	
+//define cameraRight	       L_ALT+USB[0x4F]	      // LALT+RIGHT Arrow
+//define cameraLeft	       L_ALT+USB[0x50]	      // LALT+LEFT Arrow
+//define cameraUp	       L_ALT+USB[0x52]	      // LALT+UP Arrow
+//define cameraDown	       L_ALT+USB[0x51]	      // LALT+DOWN Arrow
+//define cameraRotationLock 		
+//define cameraVehicleLock 		
+//define cameraWorldLock 		
+//define cameraZoomDOFToggle			      // Mouse3
+define cameraBlurIn 	      USB[0x06] 	      // C
+define cameraBlurOut 	      L_SHIFT+USB[0x06]     // Shift + C
+//define cameraFocusIn				      // Same as ZoomIn
+//define cameraFocusOut				      // Same as ZoomOut
+
+// HOLO-ME                      (Note: These are not currently mapped in ED)
+//define holoMEUndo		
+//define holoMERedo		
+//define holoMEMouseRotation	                      // Mapped to Mouse 3 in ED Bindings
+
+// Meta
+define connectPS              CAPS
+define disconnectPS           L_SHIFT+CAPS
+//define disconnectPS         PULSE+L_SHIFT+CAPS
+define radarClutter           USB[0x3A]             // F1 Mapped in EDHM
+
+// Virpil VPC MongoosT-50CM2 Grip 
+define VTG1                   0
+define VTG2                   1
+define VH2P                   2
+define VTG3                   3                     // Left Up Big Red Button
+define VH4P                   4                     // Center Up Pyramid Hat 4-way
+define VH4U                   5
+define VH4R                   6
+define VH4D                   7
+define VH4L                   8
+define VTG6                   9                     // Top Right Button
+define VH3P                   10
+define VH3U                   11
+define VH3R                   12
+define VH3D                   13
+define VH3L                   14
+define VTG7                   15                    // Bottom Right utton
+define VH5P                   16                    // Index finger hat 2-way
+define VH5F                   17                    // NOT WORKING UPD WORKING NOW!!!
+define VH5B                   18
+define VTG4                   19                    // Flip Trigger click
+define VH1P                   20
+define VH1U                   21
+define VH1R                   22
+define VH1D                   23 
+define VH1L                   24
+define VPNK                   25
+define VBRK                   26
+define VARM                   27                    // Flip Trigger Wwitch
+define VMISC                  28                    // 28 is not used
+define VH2U                   29
+define VH2R                   30
+define VH2D                   31
+define VH2L                   32

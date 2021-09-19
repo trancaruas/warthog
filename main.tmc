@@ -1,0 +1,653 @@
+// -----------------------------------------------------------------------------
+//  HOTAS Warthog+Virpil Customizaed Mapping
+//  Derived from HOTAS Warthog Universal HID Mapping by Sedenion
+// -----------------------------------------------------------------------------
+//  Main script file
+//  Modified by: trancaruas
+//  Version:  0.1 
+//  Intended for use with Thrustmaster Warthog Throttle + Virpil VPC MongoosT-50CM2 Grip + Thrustmaster TFRPRudder
+
+/*
+https://github.com/zeplintwo/AnalogWASD-2
+https://github.com/Touille/ED-Warthog-Target-Script
+*/
+
+include "target.tmh"                                 // Standard TM Header
+include "include/dx+.tmh"                            // DX++ Module
+include "include/pov.tmh"                            // Custom POV Hat module
+include "include/ldc.tmh"                            // LED Control module
+include "include/keymap.tmh"                         // Key mapping customizatio
+include "include/functions.tmh"                      // Custom functions
+
+define SHIFT_ENABLED      1                          // Enable (1) or Disable (0) Shift Submode
+
+define SHIFT_DEV          Throttle                   // Shift-Submode activation Button Device
+define SHIFT_BTN          EACON                      // Shift-Submode activation Button ID
+
+// Button & Hat Shift-Submode Activation
+// -----------------------------------------------------------------------------
+define H4_SHIFT           1        // Enable (1) or Disable (0) Shift-Submode for Hat 1
+define BS_SHIFT           0        // Enable (1) or Disable (0) Shift-Submode for Boat Switch
+
+// Button & Hat Long-Press Activation
+// -----------------------------------------------------------------------------
+define S1_LONG            1        // Enable (1) or Disable (0) Long-Press for S1 button
+define S2_LONG            1        // Enable (1) or Disable (0) Long-Press for S2 button
+define S3_LONG            1        // Enable (1) or Disable (0) Long-Press for S3 button
+define S4_LONG            1        // Enable (1) or Disable (0) Long-Press for S4 button
+define H2_LONG            1        // Enable (1) or Disable (0) Long-Press for Hat 2 L & R
+define LTB_LONG           1        // Enable (1) or Disable (0) Long-Press for LTB button
+
+define CS_LONG            1        // Enable (1) or Disable (0) Long-Press for CS Hat U & D
+define CH_LONG            1        // Enable (1) or Disable (0) Long-Press for China Hat
+define AP_LONG            1        // Enable (1) or Disable (0) Long-Press for AP button
+define LDGH_LONG          1        // Enable (1) or Disable (0) Long-Press for LDGH button
+
+// Common LED Config
+// -----------------------------------------------------------------------------
+define LED_BRIGHTNESS     128      // LED brightness level (0-255)
+define LED_BACKLIGHT      1        // Enable (1) or Disable (0) LED Backlight
+
+// Button-controlled LED Mapping
+// -----------------------------------------------------------------------------
+
+// Flight assist
+define LED1_CONTROL       0        // Enable (1) or Disable (0) Controlled LED1
+define LED1_DEV           Joystick // LED1 Controll Button Device
+define LED1_BTN           VPNK     // LED1 Controll Button ID
+
+// Rotational correction
+define LED2_CONTROL       1        // Enable (1) or Disable (0) Controlled LED2
+define LED2_DEV           Throttle // LED2 Controll Button Device
+define LED2_BTN           RDRNRM   // LED2 Controll Button ID
+
+// Silent run
+define LED3_CONTROL       1        // Enable (1) or Disable (0) Controlled LED3
+define LED3_DEV           Throttle // LED3 Controll Button Device
+define LED3_BTN           APUON    // LED3 Controll Button ID
+
+// Cargo scoop
+define LED4_CONTROL       1        // Enable (1) or Disable (0) Controlled LED4
+define LED4_DEV           Throttle // LED4 Controll Button Device
+define LED4_BTN           BSF      // LED4 Controll Button ID
+
+// Langing gear
+define LED5_CONTROL       1        // Enable (1) or Disable (0) Controlled LED5
+define LED5_DEV           Throttle // LED5 Controll Button Device
+define LED5_BTN           BSB      // LED5 Controll Button ID
+
+int main() 
+{
+  // ----------------------- Exclude unused devices ----------------------------
+  Configure( &HCougar,       MODE_EXCLUDED);
+  Configure( &T16000,        MODE_EXCLUDED);
+  Configure( &T16000L,       MODE_EXCLUDED);
+  Configure( &TWCSThrottle,  MODE_EXCLUDED);
+  Configure( &LMFD,          MODE_EXCLUDED);
+  Configure( &RMFD,          MODE_EXCLUDED);
+  Configure( &TFRPRudder,    MODE_FILTERED);
+	
+  //          Event Callback    Btn count   Joystick only
+  //DXpInit(    &EventHandle,     120,        CREATE_JOYSTICK);
+  DXpInit(    &EventHandle,     120);
+  
+  //               Pulse       Delay
+  SetKBRate(       32,         15 );
+  
+  initSetThrottleCurves();
+  //SetShiftButton(&Joystick, VPNK, &Throttle, PSF, PSB);
+  SetShiftButton(&Joystick, VPNK, &Throttle, 0, 0);
+  initUserHotSlotPinkyTrigger();
+  
+  // ------------------------------ Axis Mapping -------------------------------
+  // DX Axis Mapping   
+  //      Device       TM Axis     DX Axis           NORMAL/REVERSED  ABSOLUTE/RELATIVE
+  MapAxis(&Joystick,   JOYX,       DX_X_AXIS,        AXIS_NORMAL,     MAP_ABSOLUTE);
+  MapAxis(&Joystick,   JOYY,       DX_Y_AXIS,        AXIS_NORMAL,     MAP_ABSOLUTE);
+  MapAxis(&Throttle,   SCX,        DX_XROT_AXIS,     AXIS_NORMAL,     MAP_ABSOLUTE);
+  MapAxis(&Throttle,   SCY,        DX_YROT_AXIS,     AXIS_NORMAL,     MAP_ABSOLUTE);
+  MapAxis(&Throttle,   THR_RIGHT,  DX_THROTTLE_AXIS, AXIS_NORMAL,     MAP_ABSOLUTE);
+  MapAxis(&Throttle,   THR_FC,     DX_SLIDER_AXIS,   AXIS_NORMAL,     MAP_ABSOLUTE);
+  MapAxis(&TFRPRudder, TRPRIGHT,   0,                AXIS_NORMAL,     MAP_ABSOLUTE);
+  MapAxis(&TFRPRudder, TRUDDER,    0,                AXIS_NORMAL,     MAP_ABSOLUTE);
+  MapAxis(&TFRPRudder, TRPLEFT,    0,                AXIS_NORMAL,     MAP_ABSOLUTE);
+  
+  // Axis Curves       
+  //        Device     TM Axis     Left-DZ     Center-DZ   Right-DZ  Curve   Scale/Zoom
+  SetSCurve(&Joystick, JOYX,       0,          0,          0,        0,      0);
+  SetSCurve(&Joystick, JOYY,       0,          0,          0,        0,      0);
+  SetSCurve(&Throttle, SCY,        0,          2,          0,        4,      0);
+  SetSCurve(&Throttle, SCX,        0,          2,          0,        4,      0);
+  SetSCurve(&Throttle, THR_FC,     0,          0,          0,        0,      0);
+  SetJCurve(&Throttle, THR_RIGHT,  50,         50);
+  if	   (Throttle[throttleUpKey]) ActKey(KEYON+PULSE+ThrottlePresetUP);
+  else if  (Throttle[throttleMidKey]) ActKey(KEYON+PULSE+ThrottlePresetMID);
+  else 	   ActKey(KEYON+PULSE+ThrottlePresetDOWN);  
+  SetSCurve(&TFRPRudder, TRPLEFT, 0, 0, 0, 0, 0);
+  SetSCurve(&TFRPRudder, TRUDDER, 0, 0, 0, 0, 0);
+  SetSCurve(&TFRPRudder, TRPRIGHT, 0, 0, 0, 0, 0);
+
+  // *** Main Trigger pre- and full press
+  // *** Primary fire
+  // TODO combined fire on index hat control
+  //MapKey(&Joystick, VTG1, DX1);
+  //MapKey(&Joystick, VTG4, DX4);
+  MapKey(&Joystick, VTG1, 0);
+  MapKey(&Joystick, VTG4, EXEC("ActKey(KEYON+CHAIN(DOWN+primaryFire));"));
+  MapKeyR(&Joystick, VTG4, EXEC("ActKey(KEYON+CHAIN(UP+primaryFire));"));
+
+  // *** Flip Trigger
+  // *** Secondary Fire
+  // TODO combined fire on index hat control
+  //MapKey(&Joystick, VTG2, DX2);
+  MapKey(&Joystick, VTG2, EXEC("ActKey(KEYON+CHAIN(DOWN+secondaryFire));"));
+  MapKeyR(&Joystick, VTG2, EXEC("ActKey(KEYON+CHAIN(UP+secondaryFire));"));
+
+  // *** Big Red Button
+  // *** UI Escape & TODO switched mode Secondary fire
+  //MapKey(&Joystick, VTG3, DX3);
+  MapKeyIO(&Joystick, VTG3,
+           0,                                                                 // TODO PS button
+           EXEC("if(panelMode) ActKey(KEYON+CHAIN(PULSE+UIEscape));"
+                "else ActKey(KEYON+CHAIN(DOWN+secondaryFire));"));
+  MapKeyR(&Joystick, VTG3, EXEC("ActKey(KEYON+CHAIN(UP+secondaryFire));"));
+
+  MapKey(&Joystick, VTG6, DX5);
+  MapKey(&Joystick, VTG7, DX6);
+
+  // *** Pinkie switch
+  // *** Modifier & flight/drive assist toggle on double-click
+  //MapKey(&Joystick, VPNK, DX7);
+  MapKey(&Joystick, VPNK, EXEC("initUserHotSlotPinkyTrigger();")); 	
+
+  // *** Break lever
+  // *** Temporary Flight Assist on/off
+  //MapKey(&Joystick, VBRK, DX8);
+  //MapKey(&Joystick, VBRK, CHAIN(KEYON+DOWN+flightAssist, LED(&Throttle, LED_ONOFF, LED_CURRENT+LED1)));
+  MapKey(&Joystick, VBRK, CHAIN(KEYON+DOWN+flightAssist));
+  MapKeyR(&Joystick, VBRK, CHAIN(KEYON+UP+flightAssist));
+ 
+  // *** Flip trigger
+  // *** Deploy hardpoints
+  //MapKey(&Joystick, VARM, DX9);
+  MapKey(&Joystick, VARM, EXEC("if(!Joystick[VPNK]) ActKey(KEYON+PULSE+deployHardpoints);"));
+  
+  // *** H1 thumb HAT
+  // *** Countermeasures
+  /*
+  MapKey(&Joystick, VH1P, DX10);
+  MapKey(&Joystick, VH1U, DX11); 
+  MapKey(&Joystick, VH1D, DX12); 
+  MapKey(&Joystick, VH1L, DX13); 
+  MapKey(&Joystick, VH1R, DX14); 
+  */
+  MapKey(&Joystick, VH1P, SEQ(EXEC("ActKey(KEYON+DOWN+chargeECM);"),
+                              EXEC("ActKey(KEYON+UP+chargeECM);")));  // TODO set timer/release program
+  MapKey(&Joystick, VH1U, 0);
+  MapKey(&Joystick, VH1D, shieldCell);
+  MapKey(&Joystick, VH1L, heatSink);
+  MapKey(&Joystick, VH1R, chaffLaunch);
+
+  // *** H2 POV / Left Bottom HAT
+  // *** Headlook & UI management
+  /*
+  MapKey(&Joystick, VH2P, DX15);
+  MapKey(&Joystick, VH2U, DX16);
+  MapKey(&Joystick, VH2D, DX17);
+  MapKey(&Joystick, VH2L, DX18);
+  MapKey(&Joystick, VH2R, DX19);
+  */   
+  MapKeyIO(&Joystick, VH2P,
+      EXEC("ActKey(KEYON+CHAIN(PULSE+headlook)); panelMode=!panelMode;"),
+      EXEC("if(panelMode) ActKey(KEYON+CHAIN(DOWN+UISelect)); else ActKey(KEYON+CHAIN(PULSE+headlookReset));"));
+  MapKeyR(&Joystick, VH2P, EXEC("ActKey(KEYON+UP+headlook); ActKey(KEYON+CHAIN(UP+UISelect));"));
+  
+  MapKeyIO(&Joystick, VH2U,
+      EXEC("ActKey(KEYON+PULSE+CommsPanel); panelMode = 1;"),
+      EXEC("if(panelMode) initDoubleTapHold(panelUp, panelNextPage); else ActKey(KEYON+DOWN+headlookUp);"));
+  MapKeyR(&Joystick, VH2U, EXEC("ActKey(KEYON+UP+headlookUp); ActKey(KEYON+UP+panelUp);"));
+
+  MapKeyIO(&Joystick, VH2D,
+      EXEC("ActKey(KEYON+PULSE+RolePanel); panelMode = 1;"),
+      EXEC("if(panelMode) initDoubleTapHold(panelDown, panelPrevPage); else ActKey(KEYON+DOWN+headlookDown);"));
+  MapKeyR(&Joystick, VH2D, EXEC("ActKey(KEYON+UP+headlookDown); ActKey(KEYON+UP+panelDown);"));
+
+  MapKeyIO(&Joystick, VH2L,
+      EXEC("ActKey(KEYON+PULSE+TargetPanel); panelMode = 1;"),
+      EXEC("if(panelMode) initDoubleTapHold(panelLeft, panelLeftTab); else ActKey(KEYON+DOWN+headlookLeft);"));
+  MapKeyR(&Joystick, VH2L, EXEC("ActKey(KEYON+UP+headlookLeft); ActKey(KEYON+UP+panelLeft);"));
+
+  MapKeyIO(&Joystick, VH2R,
+      EXEC("ActKey(KEYON+PULSE+SystemPanel); panelMode = 1;"),
+      EXEC("if(panelMode) initDoubleTapHold(panelRight, panelRightTab); else ActKey(KEYON+DOWN+headlookRight);"));
+  MapKeyR(&Joystick, VH2R, EXEC("ActKey(KEYON+UP+headlookRight); ActKey(KEYON+UP+panelRight);"));
+  
+  //SetPov(       &Joystick,     H3 ); // Use H3 as POV
+  //OR
+  // *** H3 Bottom Center HAT
+  // *** Target Management, long press - repead keystroke
+  /*
+  MapKey(&Joystick, VH3P, DX20);
+  MapKey(&Joystick, VH3U, DX21);
+  MapKey(&Joystick, VH3D, DX22);
+  MapKey(&Joystick, VH3L, DX23);
+  MapKey(&Joystick, VH3R, DX24);
+  */
+  // TODO MMapKey* function that detect keystroke name and automagically select device
+  MapKey(&Joystick, VH3P, EXEC("ActKey(KEYON+PULSE+targetAhead);"));
+  
+  MapKey(&Joystick, VH3U, TEMPO(EXEC("if(!Joystick[VPNK]) ActKey(KEYON+PULSE+targetHighest);"
+                                     "else ActKey(KEYON+PULSE+targetNextHostile);"),
+                                EXEC("ActKey(KEYON+DOWN+targetHighest);"),
+                                250));
+  MapKeyR(&Joystick, VH3U, EXEC("ActKey(KEYON+UP+targetHighest);"));
+
+  MapKey(&Joystick, VH3D, TEMPO(EXEC("if(!Joystick[VPNK]) ActKey(KEYON+PULSE+targetNextRoute);"
+                                     "else ActKey(KEYON+PULSE+targetPrevHostile);"),
+                                EXEC("ActKey(KEYON+DOWN+targetNextRoute);"),
+                                250));
+  MapKeyR(&Joystick, VH3D, EXEC("ActKey(KEYON+UP+targetNextRoute);"));
+
+  MapKey(&Joystick, VH3L, TEMPO(EXEC("if(!Joystick[VPNK])if(!Joystick[VPNK]) ActKey(KEYON+PULSE+targetNextSubsys);"
+                                     "else ActKey(KEYON+PULSE+targetPrevSubsys);"),
+                                EXEC("ActKey(KEYON+DOWN+targetNextSubsys);"),
+                                250));
+  MapKeyR(&Joystick, VH3L, EXEC("ActKey(KEYON+UP+targetNextSubsys);"));
+
+  MapKey(&Joystick, VH3R, TEMPO(EXEC("if(!Joystick[VPNK]) ActKey(KEYON+PULSE+targetNext);"
+                                     "else ActKey(KEYON+PULSE+targetPrev);"),
+                                EXEC("ActKey(KEYON+DOWN+targetNext);"),
+                                250));
+  MapKeyR(&Joystick, VH3R, EXEC("ActKey(KEYON+UP+targetNext);"));
+
+  // *** Center Up Pyramid Hat 4-way
+  /*
+  MapKey(&Joystick, VH4P, DX25);
+  MapKey(&Joystick, VH4U, DX26);
+  MapKey(&Joystick, VH4D, DX27);
+  MapKey(&Joystick, VH4L, DX28);
+  MapKey(&Joystick, VH4R, DX29);
+  */
+  // ** PIP + Pinky audio control
+  if(pipMode == 1) {
+    MapKey(&Joystick, VH4U,
+           EXEC("if(!Joystick[VPNK]) ActKey(KEYON+PULSE+powerEng);"                    // H4 UP [Power to Engines]
+                "if(Joystick[VPNK])  ActKey(KEYON+PULSE+galNetAudioPlayPause);"));     // [Short+Pinky: galNet Audio Play/Pause]
+      MapKey(&Joystick, VH4D,
+             TEMPO(EXEC("if(!Joystick[VPNK]) ActKey(KEYON+PULSE+balancePower);"),          // H4 DOWN [Balance Power)]
+                   EXEC("if(Joystick[VPNK])  ActKey(KEYON+PULSE+galNetAudioClearQueue);"), // [Long+Pinky:  galNet Audio Clear Queue]
+                   PIPPressDelay));
+      MapKey(&Joystick, VH4L,
+             EXEC("if(!Joystick[VPNK]) ActKey(KEYON+PULSE+powerSys);"                    // H4 LEFT [Power to Systems]
+                  "if(Joystick[VPNK])  ActKey(KEYON+PULSE+galNetAudioPrev);"));          // [Short+Pinky: galNet Audio Previous Track]
+      MapKey(&Joystick, VH4R,
+             EXEC("if(!Joystick[VPNK]) ActKey(KEYON+PULSE+powerWep);"                    // H4 RIGHT: Power to Weapons (1 PIP)]
+                  "if(Joystick[VPNK])  ActKey(KEYON+PULSE+galNetAudioNext);")); }        // [Short+Pinky: GalNet Audio Next Track]
+
+  // ** PIP + Long press audio control
+  if(pipMode == 2) {
+    MapKey(&Joystick, VH4U, TEMPO(EXEC("if(!Joystick[VPNK]) ActKey(KEYON+PULSE+powerEng);"
+                                       "else initPIPMapper(ENG,WEP);"),                  // H4 UP (H3U)   [Short: 1xENG]
+                                  EXEC("ActKey(KEYON+PULSE+galNetAudioPlayPause);"),     // [Long:  galNet Audio Play/Pause]
+                                  PIPPressDelay));
+    MapKey(&Joystick, VH4D, TEMPO(EXEC("ActKey(KEYON+PULSE+balancePower);"),             // H4 DOWN (H3D) [Short: Balance]
+                                  EXEC("ActKey(KEYON+PULSE+galNetAudioClearQueue);"),    // [Long:  galNet Audio Clear Queue]
+                                  PIPPressDelay));
+    MapKey(&Joystick, VH4L, TEMPO(EXEC("if(!Joystick[VPNK]) ActKey(KEYON+PULSE+powerSys);"
+                                       "else initPIPMapper(SYS,ENG);"),                  // H4 LEFT (H3L) [Short: 1xSYS]
+                                  EXEC("ActKey(KEYON+PULSE+galNetAudioPrev);"),          // [Long:  galNet Audio Previous Track]
+                                  PIPPressDelay));
+    MapKey(&Joystick, VH4R, TEMPO(EXEC("if(!Joystick[VPNK]) ActKey(KEYON+PULSE+powerWep);"
+                                       "else initPIPMapper(WEP,ENG);"),        // H4 RIGHT (H3R) [Short: 1xWEP]
+                                  EXEC("ActKey(KEYON+PULSE+galNetAudioNext);"),     // [Long:  galNet Audio Next Track]
+                                  PIPPressDelay)); }
+
+  // *** Index finger HAT 2-way
+  // *** Firegroup & Cockpit mode management
+  // TODO Combined primary&secondary fire toggle
+  // tg1 pre primary // tg2 primary + secondary // tg3 secondary
+  // tg3 toggle modes
+  // tg1 pre secondary // tg2 primary + secondary
+  // TODO Forward next subsystem / toggle fire mode
+  // TODO Lock ALL commands
+  /*
+  LOCK Command 
+    The LOCK command protects your keystroke generation from others keystroke-generated events. This way, your 
+    chain cannot be broken by another event.  Syntax: At the beginning of the area you wish to lock: LOCK+Keystroke At the end of the locked area: LOCK  
+Examples:  
+MapKey(&Joystick, H2U, CHAIN(LOCK+KP1, KP2, LOCK));
+  */
+  MapKey(&Joystick, VH5B, EXEC("ActKey(KEYON+PULSE+firegroupNext);"));
+  MapKey(&Joystick, VH5P, EXEC("ActKey(KEYON+PULSE+cockpitMode);"));
+  MapKey(&Joystick, VH5F, EXEC("ActKey(KEYON+PULSE+firegroupPrev);"));
+
+  // https://github.com/Touille/ED-Warthog-Target-Script/blob/beta-3.3-Beyond-Chapter-Four-API/Thrustmaster%20Warthog%20Script/ED%2BHCS%20v3.3_Functions_TOGGLE.tmh
+  /*
+  int initToggleCombinedFire(){
+    sCombinedFire=!sCombinedFire;
+    if(sCombinedFire){	//Combine Primary & Secondary Fire on TG2
+      MapKey (&Joystick, TG2, EXEC("initFire();"));
+      MapKeyR(&Joystick, TG2, EXEC("initFire();"));
+    }
+    else{	//Separate Primary & Secondary Fire Press TG2 do Nothing
+      MapKey (&Joystick, TG2, 0);
+      MapKeyR(&Joystick, TG2, 0);
+    }
+    initLED(CombinedFire_LED, sCombinedFire);
+    if(DebugMode | DebugMMode) printf("Primary & Secondary Fire	[%d]	[COMBINED:[1] SEPARATE[0]]\x0a", sCombinedFire);
+  }
+  */
+
+  // --------------------------- Throttle Mapping ------------------------------
+
+  // *** Pinky Throttle
+  // TODO Hide ship GUI / Hide UI ? 
+  /*
+  MapKey(&Throttle, PSF,  EXEC("ActKey(KEYON+PULSE+ThrottlePresetUP);"));
+  MapKey(&Throttle, PSM,  EXEC("ActKey(KEYON+PULSE+ThrottlePresetMID);"));
+  MapKey(&Throttle, PSB,  EXEC("ActKey(KEYON+PULSE+ThrottlePresetDOWN);"));
+  */
+  MapKey(&Throttle, PSF,  PULSE+extCamera);
+  MapKey(&Throttle, PSM,  0);
+  MapKey(&Throttle, PSB,  PULSE+enterFreeCameraMode);
+  MapKeyR(&Throttle, PSB,  PULSE+exitFreeCameraMode);
+
+  /*
+    https://github.com/Touille/ED-Warthog-Target-Script/blob/beta-3.3-Beyond-Chapter-Four-API/Thrustmaster%20Warthog%20Script/ED%2BHCS%20v3.3_API_TCP.tmh
+
+  // TOGGLE: Voice Attack Mic
+  int initToggleVoiceAttackMic(){
+    if(VoiceAttack){
+      sVoiceAttack=!sVoiceAttack;
+      ActKey(KEYON+PULSE+ToggleVoiceAttackMic);
+      initLED(VA_LED, sVoiceAttack);
+      if(DebugMode | DebugMMode) printf("Voice Attack Mic	[%d]	[MUTE:[1] UNMUTE:[0]]\x0a", sVoiceAttack);
+    }
+  }
+
+  // TOGGLE: PTT/PTP
+  int initTogglePTTPTP(){
+    sPTTMode=!sPTTMode;
+    initLED(PTTMode_LED, sPTTMode);
+    if(DebugMode | DebugMMode) printf("PTTMode Change	[%d]	[HOLD:[0] TOGGLE:[1]]\x0a", sPTTMode);
+  }
+	
+  // TOGGLE: External/Internal Voice
+  int initTogglePTTMode(){
+    sPTTState=!sPTTState;
+    initLED(PTT_LED, sPTTState);
+    if(DebugMode | DebugMMode) printf("Mic Change		[%d]	[External:[0]Internal:[1]]\x0a", sPTTState);
+  }	
+  */
+  
+  // *** Slew Control Push SC
+  MapKey(       &Throttle,     SC,               DX40 );
+  //MapKey(&Throttle, SC, EXEC("ActKey(KEYON+PULSE+engineBoost);"));
+  
+  /// *** Left Throttle Button (RED) LTB
+  //MapKey(       &Throttle,     LTB,              DX44 );
+  MapKey(&Throttle, LTB, EXEC("ActKey(KEYON+PULSE+engineBoost);"));
+  
+  // *** Coolie Hat Switch
+  MapKey(&Throttle, CSU, DX45 );
+  MapKey(&Throttle, CSD, DX46 );
+  MapKey(&Throttle, CSR, DX47 );
+  MapKey(&Throttle, CSL, DX48 );
+
+  // *** Mic Switch
+  // Fighter operations
+  /*
+  MapKey(&Throttle, MSP, DX49 );
+  MapKeyIO(&Throttle, MSU, DX50 );
+  MapKeyIO(&Throttle, MSR, DX51 );
+  MapKeyIO(&Throttle, MSD, DX52 ); 
+  MapKeyIO(&Throttle, MSL, DX53 );
+  */
+  MapKey(&Throttle, MSP, fighterOpen );
+  MapKeyIO(&Throttle, MSU, fighterDefend, fighterFollow);
+  MapKeyIO(&Throttle, MSR, fighterAggr, fighterAttack);
+  MapKey(&Throttle, MSD, fighterDock ); 
+  MapKeyIO(&Throttle, MSL, fighterNoFire, fighterHold );
+    
+  // *** Speedbrake
+  // *** Throttle Full forward / Full range / Trimmed full range presets
+  /*
+  MapKey(&Throttle, SPDB, DX54 );
+  MapKey(&Throttle, SPDM, DX55 );
+  MapKey(&Throttle, SPDF, DX56 );
+  */
+  /*
+  MapKey(&Throttle, SPDF,  EXEC("ActKey(KEYON+PULSE+ThrottlePresetUP);"));
+  MapKey(&Throttle, SPDM,  EXEC("ActKey(KEYON+PULSE+ThrottlePresetMID);"));
+  MapKey(&Throttle, SPDB,  EXEC("ActKey(KEYON+PULSE+ThrottlePresetDOWN);"));
+  */
+  MapKey(&Throttle, throttleUpKey,  EXEC("ActKey(KEYON+PULSE+ThrottlePresetUP);"));
+  MapKey(&Throttle, throttleMidKey,  EXEC("ActKey(KEYON+PULSE+ThrottlePresetMID);"));
+  MapKey(&Throttle, throttleDownKey,  EXEC("ActKey(KEYON+PULSE+ThrottlePresetDOWN);"));
+
+  // *** Boat Switch
+  // *** Cargo scoop & Landing gear
+  /*
+  MapKey(&Throttle, BSF, CHAIN(PULSE+cargoScoop, LED(&Throttle, LED_ONOFF, LED_CURRENT+LED4)));
+  MapKeyR(&Throttle, BSF, CHAIN(PULSE+cargoScoop, LED(&Throttle, LED_ONOFF, LED_CURRENT+LED4)));
+  MapKey(&Throttle, BSM, 0);
+  MapKey(&Throttle, BSB, CHAIN(PULSE+landingGear, LED(&Throttle, LED_ONOFF, LED_CURRENT+LED5)));
+  MapKeyR(&Throttle, BSB, CHAIN(PULSE+landingGear, LED(&Throttle, LED_ONOFF, LED_CURRENT+LED5)));
+  */
+  MapKey(&Throttle, BSF, CHAIN(PULSE+cargoScoop));
+  MapKeyR(&Throttle, BSF, CHAIN(PULSE+cargoScoop));
+  MapKey(&Throttle, BSM, 0);
+  MapKey(&Throttle, BSB, CHAIN(PULSE+landingGear));
+  MapKeyR(&Throttle, BSB, CHAIN(PULSE+landingGear));
+  
+  // *** China Hat
+  // *** Frameshift Drive & Hyperspace Jump 
+  //MapKey(&Throttle, CHF, CHAIN(PULSE+hyperspaceJump, KEYON+PULSE+LedOn(rcLED)));
+  MapKey(&Throttle, CHF, CHAIN(PULSE+hyperspaceJump));
+  //MapKey(&Throttle, CHM, CHAIN(PULSE+ LED(&Throttle, LED_ONOFF, LED_CURRENT+LED5)));
+  MapKey(&Throttle, CHM, 0);
+  MapKey(&Throttle, CHB, PULSE+frameshiftDrive);
+  
+  // *** Flaps
+  // *** Camera Suit Control
+  /*
+  MapKey(&Throttle, FLAPD, DX62 );
+  MapKey(&Throttle, FLAPM, DX63 );
+  MapKey(&Throttle, FLAPU, DX64 );
+  */
+  MapKey(&Throttle, FLAPD, extCamera );
+  MapKey(&Throttle, FLAPU, enterFreeCameraMode);
+  MapKeyR(&Throttle, FLAPU, exitFreeCameraMode);
+
+  // *** EAC Enhanced Attitude Control
+  // *** Toggle Orbit Lines
+  /*
+  MapKey(&Throttle, EACOFF, DX65 );
+  MapKey(&Throttle, EACON,  DX66 );
+  */  
+  MapKey(&Throttle, EACON, CHAIN(PULSE+toggleOrbitLines));
+  MapKey(&Throttle, EACOFF, CHAIN(PULSE+toggleOrbitLines));
+
+  // *** RDR ALTM RDRNRM/RDRDIS
+  // *** Rotation correction  
+  /* 
+  MapKey(&Throttle, RDRDIS, DX67 );  
+  MapKey(&Throttle, RDRNRM, DX68 );
+  */
+  MapKey(&Throttle, RDRNRM, CHAIN(PULSE+rotationalCorrection));
+  MapKey(&Throttle, RDRDIS, CHAIN(PULSE+rotationalCorrection));
+
+  // *** Autopilot Engage Button APENG
+  // *** TODO Initiate docking request
+  MapKey(&Throttle, APENG, DX69 );
+
+  /*
+  //MACRO: Auto-Docking Request
+  mRequestCancelDock = CHAIN(
+                             LOCK+
+                             PULSE+TargetPanel,    D(MiniPulseDelay),
+                             PULSE+UINextPanel,    D(MiniPulseDelay),
+                             PULSE+UINextPanel,    D(MiniPulseDelay),
+                             PULSE+UISelect,       D(MiniPulseDelay),
+                             PULSE+UIDown,         D(MiniPulseDelay),
+                             PULSE+UISelect,       D(MiniPulseDelay),
+                             PULSE+UIPrevPanel,    D(MiniPulseDelay),
+                             PULSE+UIPrevPanel,    D(MiniPulseDelay),
+                             PULSE+UIBack,         D(MiniPulseDelay),
+                             PULSE+SetSpeed0,
+                             LOCK
+                             );
+  */            
+
+  // *** Autopilot Select Switch AP PATH | AP ALT/HDG | AP ALT 
+  // *** Galaxy Map | System Map
+  /*
+  MapKey(&Throttle, APALT, DX70 );
+  MapKey(&Throttle, APAH,  DX71 );
+  MapKey(&Throttle, APPAT, DX72 );
+  */
+  MapKey(&Throttle, APPAT, EXEC("if(!Joystick[VPNK]) ActKey(KEYON+PULSE+galaxyMap);"));
+  MapKeyR(&Throttle, APPAT, EXEC("if(!Joystick[VPNK]) ActKey(KEYON+PULSE+galaxyMap);"));
+  MapKey(&Throttle, APALT, EXEC("if(!Joystick[VPNK]) ActKey(KEYON+PULSE+systemMap);"));
+  MapKeyR(&Throttle, APALT, EXEC("if(!Joystick[VPNK]) ActKey(KEYON+PULSE+systemMap);"));
+
+  // *** Landing Gear / Warning Horn Silence Button LDGH
+  //MapKey(       &Throttle,     LDGH,             DX73 );
+  MapKey(&Throttle, LDGH, EXEC("ActKey(KEYON+PULSE+toggleOrbitLines);"));
+  
+  // *** APU Start APUON | APUOFF
+  // *** Silent run | Shifted Connect to PS4
+  /*
+  MapKey(&Throttle, APUOFF, DX74 );
+  MapKey(&Throttle, APUON,  DX75 );
+  */
+  /*
+  MapKeyIO(&Throttle, APUON, CHAIN(PULSE+CAPS, EXEC("BlinkToOn(srLED);")),            // connect to PS4
+      CHAIN(PULSE+silentRun, EXEC("BlinkToOn(srLED);")));      // silent run TODO heat sink launch program
+  MapKeyIO(&Throttle, APUOFF, CHAIN(PULSE+L_SHIFT+CAPS, EXEC("BlinkToOff(srLED);")),  // disconnect from PS4
+      CHAIN(PULSE+silentRun, EXEC("BlinkToOff(srLED);")));      // silent run off TODO heat sink launch program off
+  */
+  MapKeyIO(&Throttle, APUON, CHAIN(PULSE+connectPS),
+                             CHAIN(PULSE+silentRun));     // TODO heat sink launch program
+  MapKeyIO(&Throttle, APUOFF, CHAIN(PULSE+disconnectPS),
+                              CHAIN(PULSE+silentRun));    // TODO heat sink launch program off
+
+  // *** Engine Operate Ign/Norm LEFT
+  // *** Navigation lights & Night vision TODO blinking on landing
+  /*
+  MapKey(&Throttle, EOLMOTOR, DX76 );
+  MapKey(&Throttle, EOLNORM,  DX77 );
+  MapKey(&Throttle, EOLIGN,   DX78 );
+  */
+  MapKey(&Throttle, EOLIGN,
+      TEMPO(EXEC("ActKey(KEYON+PULSE+navLight);"),
+            EXEC("ActKey(KEYON+PULSE+navLight);"),
+            500));
+  //MapKey(&Throttle, EOLNORM, PULSE+DX77);
+  MapKey(&Throttle, EOLMOTOR, PULSE+nightVision);
+  MapKeyR(&Throttle, EOLMOTOR, PULSE+nightVision);
+
+  // *** Engine Operate Ign/Norm RIGHT
+  // *** TEMP Navigation lights & Night vision TODO blinking on landing
+  /*
+  MapKey(       &Throttle,     EORMOTOR,         DX79 );
+  MapKey(       &Throttle,     EORNORM,          DX80 );
+  MapKey(       &Throttle,     EORIGN,           DX81 );
+  */
+  MapKey(&Throttle, EORIGN,
+      TEMPO(EXEC("ActKey(KEYON+PULSE+navLight);"),
+            EXEC("ActKey(KEYON+PULSE+navLight);"),
+            500));
+  // MapKey(&Throttle, EORNORM, PULSE+DX32);
+  MapKey(&Throttle, EORMOTOR, PULSE+nightVision); // nightVision
+  MapKeyR(&Throttle, EORMOTOR, PULSE+nightVision); // nightVision
+
+  // *** Engine Fuel Flow Switches LEFT	EFLNORM/EFLOVER
+  // *** Full Spectrum Scanner
+  /*
+  MapKey(       &Throttle,     EFLOVER,          DX82 );
+  MapKey(       &Throttle,     EFLNORM,          DX83 );
+  */
+  MapKey(&Throttle, EFLNORM,  PULSE+fssEnter);
+  MapKey(&Throttle, EFLOVER,  PULSE+fssExit);
+
+  // *** Engine Fuel Flow Switches RIGHT EFRNORM/EFROVER
+  MapKey(&Throttle, EFROVER,  DX84 );
+  MapKey(&Throttle, EFRNORM,  DX85 );
+
+  // *** Throttle Idle Detents LEFT
+  MapKey(&Throttle, IDLERON,  DX86 );
+  MapKey(&Throttle, IDLEROFF, DX87 );
+
+  // *** Throttle Idle Detents RIGHT
+  MapKey(&Throttle, IDLELON,  DX88 );
+  MapKey(&Throttle, IDLELOFF, DX89 ); 
+
+  
+  // ----------------------------- LED Mapping ---------------------------------
+  
+  LedIntensity( &Throttle, LED_BRIGHTNESS );
+  LedEnable(    &Throttle, LED0,      LED_BACKLIGHT );
+    
+  if(LED1_BTN != -1) {
+    MapLed(       &LED1_DEV, LED1_BTN,  &Throttle,      LED1,   LED_ONPRESS );
+  } else {
+    LedEnable(    &Throttle, LED1,      0 );
+  }
+  
+  if(LED2_BTN != -1) {
+    MapLed(       &LED2_DEV, LED2_BTN,  &Throttle,      LED2,   LED_ONPRESS );
+  } else {
+    LedEnable(    &Throttle, LED2,      0 );
+  }
+  
+  if(LED3_BTN != -1) {
+    MapLed(       &LED3_DEV, LED3_BTN,  &Throttle,      LED3,   LED_ONPRESS );
+  } else {
+    LedEnable(    &Throttle, LED3,      0 );
+  }
+  
+  if(LED4_BTN != -1) {
+    MapLed(       &LED4_DEV, LED4_BTN,  &Throttle,      LED4,   LED_ONPRESS );
+  } else {
+    LedEnable(    &Throttle, LED4,      0 );
+  }
+  
+  if(LED5_BTN != -1) {
+    MapLed(       &LED5_DEV, LED5_BTN,  &Throttle,      LED5,   LED_ONPRESS );
+  } else {
+    LedEnable(    &Throttle, LED5,      0 );
+  }
+}
+
+int EventHandle(int type, alias o, int x) {
+    int TRPCOMBO;
+
+    //DefaultMapping(&o, x);
+    PovMapping(&o, x);
+    LDcMapping(&o, x);
+
+    if (&o == &TFRPRudder) {
+        GetAxisData(&o, x);
+        axdata.val = AxisVal(o[x], &axdata);
+	    if( x == TRPLEFT | x == TRPRIGHT ) {
+            // axdata.locked = 1; // uncommend to disable pedals but keep TRPCOMBO axis
+            // if both toes > 80% activate reverse & SRV brake 6571
+            // if( (TFRPRudder[TRPRIGHT] < 6571 ) & ( TFRPRudder[TRPLEFT] < 6571 ) ) {
+            if( (TFRPRudder[TRPRIGHT] < 120 ) & ( TFRPRudder[TRPLEFT] < 120 ) ) {
+                /* KeyAxis(&TFRPRudder, TRPRIGHT, 0, AXMAP1(2, throttleReverse, throttleReverse)); */
+                ActKey(KEYON+DOWN+thrustReverse);
+                DXAxis(DX_ZROT_AXIS, 0);
+                axdata.locked = 1;
+            } else {
+                TRPCOMBO = -TFRPRudder[TRPRIGHT]/2 + TFRPRudder[TRPLEFT]/2;
+                ActKey(KEYON+UP+thrustReverse);
+                DXAxis(DX_ZROT_AXIS, TRPCOMBO);
+            }
+        }
+	
+        if(!axdata.locked & !axdata.relative)
+            GameOutput(&o, x, axdata.val);
+    } else DefaultMapping(&o, x);
+}
+

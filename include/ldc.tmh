@@ -1,0 +1,213 @@
+// -----------------------------------------------------------------------------
+//  LED Control Module for Thrustmaster TARGET
+// -----------------------------------------------------------------------------
+//  LED Control Module header
+//  Version:  1.0
+//  Author:   Sedenion
+// -----------------------------------------------------------------------------
+//  Desc:
+//  Functions and definitions for the LED Control Module. This module allow 
+//  control LED status with buttons in parallel of standard mapping.
+//
+//  Usage:
+//  The module assigns any button to control any LED of any device. There is
+//  three control type for each entry. It also provide shortcut functions to 
+//  control LED.
+//  The module does not support multi-layer mapping, all mapping are defined for 
+//  all UMDIO layers.
+//
+//  I) Installation
+//
+//    - Include this file using the "include" keywork in your main
+//      tmc profile file.
+//
+//      example:
+//              include "ldc.tmh"
+//
+//    - Add a call to the LDcMapping() function within the EventHandle() 
+//      function with proper parameters.
+//     
+//      example: 
+//              int EventHandle(int type, alias o, int x)
+//              {
+//                DefaultMapping(&o, x);
+//                LDcMapping(&o, x);
+//              }
+//
+//  II) Assing button to control LED
+//
+//    - Within the main() function, you must assign LED to button using 
+//      the MapLed() function.
+//      
+//      example: 
+//              MapLed(&Joystick, TG1,    &Trottle, LED0,   LED_TOGGLE);
+//              MapLed(&Throttle, EACON,  &Trottle, LED1,   LED_ONPRESS);
+//              MapLed(&Throttle, APUON,  &Trottle, LED2,   LED_ONRELEASE);
+//
+//  III) Enable, Toggle and Itensity
+//
+//    - You can use individual shortcut functions to enable, disable or 
+//      toggle LED.
+//
+//    example:
+//            LedEnable(&Throttle, LED1, 1); // Enabled LED1 on Throttle
+//            LedEnable(&Throttle, LED0, 0); // Disable Throttle Backlight
+//            LedToggle(&Throttle, LED3);    // Toggle LED3 on Throttle
+//
+//    - You also can define LED intensity.
+//
+//    example:
+//            LedIntensity(&Throttle, 100);  // Set intensity 100 for Throttle LEDs
+//
+// -----------------------------------------------------------------------------
+
+// ----------------------------- Global Defines --------------------------------
+
+// LED control types
+define  LED_ONPRESS     0
+define  LED_ONRELEASE   1
+define  LED_TOGGLE      2
+
+// LED Mapping structure
+struct stLDcMap
+{
+  byte  type;
+  int   bdev;
+  int   bidx;
+  int   ldev;
+  int   lidx;
+}
+
+// ---------------------------- Global Variables -------------------------------
+
+byte      LDcEnabled  = 0;                            // Module enable flag
+stLDcMap  LDcMap[32];                                 // LED Mapping struct list
+int       LDcCnt      = 0;                            // LED Mapping Count
+
+// ---------------------------- Global Functions -------------------------------
+
+// Enable or disable LED.
+//
+// - param[in] dev LED input device.
+// - param[in] led LED identifier.
+// - param[in] enable Boolean to enable(1) or disable(0) LED.
+//
+// - return Always 0.
+//
+// Enable or disable the specified LED on device.
+//
+int LedEnable(alias dev, int led, byte enable)
+{
+  if(enable) {
+    ActKey(PULSE+KEYON+LED(&dev,LED_ONOFF,LED_CURRENT+led));
+  } else {
+    ActKey(PULSE+KEYON+LED(&dev,LED_ONOFF,LED_CURRENT-led));
+  }
+  return 0;
+}
+
+
+// Toggle LED.
+//
+// - param[in] dev LED input device.
+// - param[in] led LED identifier.
+//
+// Toggle the specified LED on device.
+//
+int LedToggle(alias dev, int led)
+{
+  ActKey(PULSE+KEYON+LED(&dev,LED_ONOFF,LED_CURRENT^led));
+}
+
+// Set LED intensity.
+//
+// - param[in] dev Input device.
+// - param[in] level Intensity level to set.
+//
+// Toggle the specified LED on device.
+//
+int LedIntensity(alias dev, int level)
+{
+  ActKey(PULSE+KEYON+LED(&dev,LED_INTENSITY,level)); 
+}
+
+
+// ---------------------------- Mapping Functions ------------------------------
+
+// Set button to control LED.
+//
+// - param[in] bdev Button input device
+// - param[in] btnidx Button index
+// - param[in] ldev LED input device
+// - param[in] ledidx LED index
+// - param[in] type Control type (LED_ONPRESS, LED_ONRELEASE or LED_TOGGLE)
+//
+// Assigns the specified button to control the specified LED according
+// the given control type.
+//
+int MapLed(alias bdev, int btnidx, alias ldev, int ledidx, byte type)
+{
+  if(LDcCnt < 32) {
+  
+    LDcMap[LDcCnt].bdev = &bdev;
+    LDcMap[LDcCnt].bidx = btnidx;
+    LDcMap[LDcCnt].ldev = &ldev;
+    LDcMap[LDcCnt].lidx = ledidx;
+    LDcMap[LDcCnt].type = type;
+    
+    // set initial state for LED
+    if(type == LED_ONPRESS)   LedEnable(&ldev, ledidx, bdev[btnidx]);
+    if(type == LED_ONRELEASE) LedEnable(&ldev, ledidx, !bdev[btnidx]);
+    if(type == LED_TOGGLE)    LedEnable(&ldev, ledidx, 0);
+    
+    LDcCnt = LDcCnt + 1;
+    
+    if(!LDcEnabled) {
+      LDcEnabled = 1;
+      printf("Button-Controlled LED Module enabled\xa");
+    }
+    
+    return 0;
+  }
+  return 1; // error
+}
+
+// ---------------------------- Callback Function ------------------------------
+
+// Event Callback for LDc.
+//
+// - param[in] o Event device.
+// - param[in] x Event button.
+//
+// - return always 0.
+//
+// Performs event handling to control LED according device states. This 
+// function is the  event callback routine who must be called within the 
+// EventHandle() function.
+//
+int LDcMapping(alias o, int x)
+{
+  int i;
+  
+  if(LDcEnabled) {
+  
+    i = 0;
+    
+    while(i < LDcCnt) {
+    
+      if(&o == LDcMap[i].bdev & x == LDcMap[i].bidx) {
+      
+        if(LDcMap[i].type == LED_ONPRESS)   LedEnable(LDcMap[i].ldev, LDcMap[i].lidx, o[x]);
+        if(LDcMap[i].type == LED_ONRELEASE) LedEnable(LDcMap[i].ldev, LDcMap[i].lidx, !o[x]);
+        if(LDcMap[i].type == LED_TOGGLE & o[x]) LedToggle(LDcMap[i].ldev, LDcMap[i].lidx);
+        
+      }
+    
+      i = i + 1;
+    }
+  } // if(LDcEnabled)
+  
+  return 0;
+}
+
+

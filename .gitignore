@@ -1,0 +1,8 @@
+# Original files
+*.orig
+
+# Emacs temp files
+*.*~
+
+# Changes made outside of project
+changes/

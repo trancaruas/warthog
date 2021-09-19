@@ -1,0 +1,202 @@
+// -----------------------------------------------------------------------------
+//  Custom POV Hat Module for Thrustmaster TARGET
+// -----------------------------------------------------------------------------
+//  Custom POV Hat Module header
+//  Version:  1.0
+//  Author:   Sedenion
+// -----------------------------------------------------------------------------
+//  Desc:
+//  Functions and definitions for the Custom POV Hat Module. This module allow 
+//  to define any Hat as standard 8 positions HID POV hat.
+//  
+//  Usage: 
+//  The module can handle only one hat at a time. You have to choose the
+//  one you want to use as POV Hat. If no Hat is defined, the module is 
+//  disabled.
+//
+//  I) Installation
+//
+//    - Include this file using the "include" keywork in your main
+//      tmc profile file.
+//
+//      example:
+//              include "pov.tmh"
+//
+//    - Add a call to the PovMapping() function within the EventHandle() 
+//      function with proper parameters.
+//     
+//      example: 
+//              int EventHandle(int type, alias o, int x)
+//              {
+//                DefaultMapping(&o, x);
+//                PovMapping(&o, x);
+//              }
+//        
+//  II) Define HAT and Mapping
+//
+//    - Within the main() function, you must define the HAT you want 
+//      to use with corners using the SetH9p() function.
+//
+//      example: 
+//              SetPov(&Joystick, H2);
+//      
+// -----------------------------------------------------------------------------
+
+// ----------------------------- Global Defines --------------------------------
+
+// HAT Identifiers
+define H1       11
+define H2       12
+define H3       13
+define H4       14
+define H5       15
+//define CS     22 // CS is already defined as IN_POSITION_HAT
+define MS       21
+
+// ---------------------------- Global Variables -------------------------------
+
+byte  PovEnabled  = 0;                    // Module enable flag
+int   PovDev;                             // Input Hat device ptr
+int   PovBtn[4];                          // Input Hat buttons index list (U, R, D, L)
+
+// ---------------------------- Mapping Functions ------------------------------
+
+// Define HAT as POV.
+//
+// - param[in] dev Input device (&Joystick or &Throttle).
+// - param[in] hat Input HAT identifier (H1, H2, H3, H4, MS or CS).
+//
+// - return 0 if operation succeed, 1 if dev and hat are not supported or valid.
+//
+// Defines the HAT who must be mapped with corners positions. This initializes 
+// the POV module to handle the specified HAT.
+//
+int SetPov(alias dev, int hat)
+{
+  PovDev = &dev;
+  
+  int u = 0; // first hat button id
+  alias n;
+  
+  // check which hat and map module
+  if(&dev == &Joystick) {
+    if(hat == H5) { u = H5U; &n = "Joystick H5"; }
+    if(hat == H2) { u = H2U; &n = "Joystick H2"; }
+    if(hat == H3) { u = H3U; &n = "Joystick H3"; }
+    if(hat == H4) { u = H4U; &n = "Joystick H4"; }
+    if(hat == H1) { u = H1U; &n = "Joystick H1"; }
+  }
+  
+  if(&dev == &Throttle) {
+    if(hat == MS) { u = MSU; &n = "Throttle MS"; }
+    if(hat == CS) { u = CSU; &n = "Throttle CS"; }
+  }
+  
+  if(u == 0) // bad parameters
+    return 1; 
+  
+  int i = 0;
+  while(i < 4) {
+  
+    PovBtn[i] = u + i;
+    MapKey(&dev, PovBtn[i],  0); // disable the default DX button
+    
+    i = i + 1;
+  }
+  
+  PovEnabled = 1;
+  
+  printf("Standard POV Hat emulated on %s\xa", &n);
+  
+  return 0;
+}
+
+
+// ---------------------------- Callback Function ------------------------------
+
+
+// Event Callback for H9p.
+//
+// - param[in] o Event device.
+// - param[in] x Event button.
+//
+// - return always 0.
+//
+// Performs event handling to generate keystrokes according device states. This 
+// function is the  event callback routine who must be called within the 
+// EventHandle() function.
+//
+int PovMapping(alias o, int x) {
+  
+  if(PovEnabled) {
+    
+    if(&o == PovDev) { // event on device
+      
+      if(x == PovBtn[0] | x == PovBtn[1] | x == PovBtn[2] | x == PovBtn[3]) { // event on button(s)
+        
+        // first, check if any corner (Up+Right, Down+Left, etc.) is pressed
+        if(o[PovBtn[0]] & o[PovBtn[3]]) { // HU + HL
+          ActKey(DXHATUP); ActKey(DXHATLEFT); // Release U & L
+          ActKey(KEYON+DXHATUPLEFT); // Press UL
+          return 0; // return now
+        } else {
+          ActKey(DXHATUPLEFT); // Release UL
+        }
+        
+        if(o[PovBtn[0]] & o[PovBtn[1]]) { // HU + HR
+          ActKey(DXHATUP); ActKey(DXHATRIGHT); // Release U & R
+          ActKey(KEYON+DXHATUPRIGHT); // Press UR
+          return 0; // return now
+        } else {
+          ActKey(DXHATUPRIGHT); // Release UR
+        }
+        
+        if(o[PovBtn[2]] & o[PovBtn[3]]) { // HD + HL
+          ActKey(DXHATDOWN); ActKey(DXHATLEFT); // Release D & L
+          ActKey(KEYON+DXHATDOWNLEFT); // Press DL
+          return 0; // return now
+        } else {
+          ActKey(DXHATDOWNLEFT); // Release DL
+        }
+        
+        if(o[PovBtn[2]] & o[PovBtn[1]]) { // HD + HR
+          ActKey(DXHATDOWN); ActKey(DXHATRIGHT); // Release D & R
+          ActKey(KEYON+DXHATDOWNRIGHT); // Press DR
+          return 0; // return now
+        } else {
+          ActKey(DXHATDOWNRIGHT); // Release DR
+        }
+        
+        // no corner pressed, so we check if any standard Up, Down, 
+        // Left or Right is pressed.
+        
+        if(o[PovBtn[0]]) { // HU
+          ActKey(KEYON+DXHATUP); // Press U
+        } else {
+          ActKey(DXHATUP); // Release U
+        }
+        
+        if(o[PovBtn[1]]) { // HR
+          ActKey(KEYON+DXHATRIGHT); // Press R
+        } else {
+          ActKey(DXHATRIGHT); // Release R
+        }
+        
+        if(o[PovBtn[2]]) { // HD
+          ActKey(KEYON+DXHATDOWN); // Press D
+        } else {
+          ActKey(DXHATDOWN); // Release D
+        }
+        
+        if(o[PovBtn[3]]) { // HL
+          ActKey(KEYON+DXHATLEFT); // Press L
+        } else {
+          ActKey(DXHATLEFT); // Release L
+        }
+      } 
+    }
+  } // if(PovEnabled)
+  
+  return 0;
+}
+
