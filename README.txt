@@ -1,22 +1,12 @@
+Thrustmaster HOTAS Warthog+Virpil - Customized HID Mapping
 -----------------------------------------------------------------------------
-  
-Thrustmaster HOTAS Warthog - Universal HID Mapping
------------------------------------------------------------------------------
-
-Version:  1.0
-  
-Author:   Sedenion
-Release:  2018
------------------------------------------------------------------------------
-
-
-
+Modified by: trancaruas
+Initial Version:  1.0  
+Initial Author:   Sedenion
+Initial Release:  2018
 
 Description
 -----------------------------------------------------------------------------
-
-
-
 The Thrustmaster HOTAS Warthog "Universal HID Mapping" is an advanced 
 programming TARGET script which provides enhanced mapping using only HID (DX) 
 buttons. The HID buttons (DX) based mapping allow to use the same profile for 
@@ -30,11 +20,7 @@ use 86 buttons with 8 POV hat positions.
 
 
 Usage
-
 -----------------------------------------------------------------------------
-
-
-
 Using "TARGET Script Editor":
 
 - Launch "TARGET Script Editor", open the "main.tmc" file then click the 
@@ -45,13 +31,8 @@ Using "TARGET GUI":
 - Launch "TARGET GUI", Click the "RUN CONFIGURATION" button, then open the
   "main.tmc" file.
 
-
-
 Customization
 -----------------------------------------------------------------------------
-
-
-
 The Shift-Submode and Long-Press mapping can be easily customised by editing 
 the "main.tmc" file. It is possible to:
 
