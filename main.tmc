@@ -4,7 +4,7 @@
 // -----------------------------------------------------------------------------
 //  Main script file
 //  Modified by: trancaruas
-//  Version:  0.3
+//  Version:  0.4
 //  Intended for use with Thrustmaster Warthog Throttle + Virpil VPC MongoosT-50CM2 Grip + Thrustmaster TFRPRudder
 
 /*
@@ -329,11 +329,17 @@ int main() {
   // *** Left Throttle Button (RED) LTB, original DX44
   MapKey(&Throttle, LTB, EXEC("ActKey(KEYON+PULSE+engineBoost);"));
   
-  // *** Coolie Hat Switch CS, original DX45-DX48
+  // *** Coolie Hat Switch CS, orbital external camera, original DX45-DX48
+  /*
   MapKey(&Throttle, CSU, DX45 );
   MapKey(&Throttle, CSD, DX46 );
   MapKey(&Throttle, CSR, DX47 );
   MapKey(&Throttle, CSL, DX48 );
+  */
+  MapKey(&Throttle, CSR, EXEC("DXAxis(DX_X_AXIS, -32000); DXAxis(DX_XROT_AXIS, 32000);" ));
+  MapKey(&Throttle, CSL, EXEC("DXAxis(DX_X_AXIS, 32000); DXAxis(DX_XROT_AXIS, -32000);" ) );
+  MapKeyR(&Throttle, CSR, EXEC("DXAxis(DX_X_AXIS, 0); DXAxis(DX_XROT_AXIS, 0);" ));
+  MapKeyR(&Throttle, CSL, EXEC("DXAxis(DX_X_AXIS, 0); DXAxis(DX_XROT_AXIS, 0);" ) );
 
   // *** Mic Switch MS, original DX49-DX53
   // Fighter operations
@@ -362,8 +368,8 @@ int main() {
   MapKey(&Throttle, BSF, CHAIN(PULSE+cargoScoop));
   MapKeyR(&Throttle, BSF, CHAIN(PULSE+cargoScoop));
   MapKey(&Throttle, BSM, 0);
-  MapKey(&Throttle, BSB, CHAIN(PULSE+landingGear));
-  MapKeyR(&Throttle, BSB, CHAIN(PULSE+landingGear));
+  MapKey(&Throttle, BSB, EXEC("if(!Joystick[VPNK]) ActKey(KEYON+PULSE+landingGear);"));
+  MapKeyR(&Throttle, BSB, EXEC("if(!Joystick[VPNK]) AlctKey(KEYON+PULSE+landingGear);"));
   
   // *** China Hat CH
   // *** Frameshift Drive & Hyperspace Jump 
@@ -453,8 +459,8 @@ int main() {
             EXEC("ActKey(KEYON+PULSE+navLight);"),
             500));
   MapKey(&Throttle, EORNORM, 0);
-  MapKey(&Throttle, EORMOTOR, PULSE+nightVision);
-  MapKeyR(&Throttle, EORMOTOR, PULSE+nightVision);
+  MapKey(&Throttle, EORMOTOR, EXEC("if(!Joystick[VPNK]) ActKey(KEYON+PULSE+nightVision);"));
+  MapKeyR(&Throttle, EORMOTOR, EXEC("if(!Joystick[VPNK]) ActKey(KEYON+PULSE+nightVision);"));
 
   // *** Engine Fuel Flow Switches Left EFL, original DX82-DX83
   // *** Full Spectrum Scanner
