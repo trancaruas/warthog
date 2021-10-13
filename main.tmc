@@ -4,7 +4,7 @@
 // -----------------------------------------------------------------------------
 //  Main script file
 //  Modified by: trancaruas
-//  Version:  0.4
+//  Version:  0.5
 //  Intended for use with Thrustmaster Warthog Throttle + Virpil VPC MongoosT-50CM2 Grip + Thrustmaster TFRPRudder
 
 /*
@@ -129,19 +129,19 @@ int main() {
 
   // *** Main Trigger pre- and full press, original DX1&DX4
   // *** Primary fire
-  // TODO combined fire on index hat control
-  MapKey(&Joystick, VTG1, 0);
+  MapKey(&Joystick, VTG1, EXEC("if(fireMode == 1) ActKey(KEYON+CHAIN(DOWN+primaryFire));"
+                               "if(fireMode == 2) ActKey(KEYON+CHAIN(DOWN+secondaryFire));"));
+  MapKeyR(&Joystick, VTG1, EXEC("ActKey(KEYON+CHAIN(UP+primaryFire, UP+secondaryFire));"));
+  MapKey(&Joystick, VTG2, EXEC("ActKey(KEYON+CHAIN(DOWN+primaryFire, DOWN+secondaryFire));"));
+  MapKeyR(&Joystick, VTG2, EXEC("ActKey(KEYON+CHAIN(UP+primaryFire, UP+secondaryFire));"));
+
+  // *** Flip Trigger, original DX2
+  // *** Primary Fire
   MapKey(&Joystick, VTG4, EXEC("ActKey(KEYON+CHAIN(DOWN+primaryFire));"));
   MapKeyR(&Joystick, VTG4, EXEC("ActKey(KEYON+CHAIN(UP+primaryFire));"));
 
-  // *** Flip Trigger, original DX2
-  // *** Secondary Fire
-  // TODO combined fire on index hat control
-  MapKey(&Joystick, VTG2, EXEC("ActKey(KEYON+CHAIN(DOWN+secondaryFire));"));
-  MapKeyR(&Joystick, VTG2, EXEC("ActKey(KEYON+CHAIN(UP+secondaryFire));"));
-
   // *** Big Red Button, original DX3
-  // *** UI Escape & TODO switched mode Secondary fire
+  // *** UI Escape & Secondary fire
   // TODO PS button
   MapKeyIO(&Joystick, VTG3,
            0,
@@ -149,8 +149,16 @@ int main() {
                 "else ActKey(KEYON+CHAIN(DOWN+secondaryFire));"));
   MapKeyR(&Joystick, VTG3, EXEC("ActKey(KEYON+CHAIN(UP+secondaryFire));"));
 
-  MapKey(&Joystick, VTG6, DX5);
-  MapKey(&Joystick, VTG7, DX6);
+  // *** Top right button, original DX5
+  // *** Switch fire mode. Pinky: reset to Fire Mode 0
+  MapKeyIO(&Joystick, VTG6,
+           EXEC("fireMode = 0; printf(\"Fire Mode 0: Pre-trigger no fire\\xa\");"),
+           SEQ(EXEC("fireMode = 1; printf(\"Fire Mode 1: Pre-trigger primary fire\\xa\");"),
+               EXEC("fireMode = 2; printf(\"Fire Mode 2: Pre-trigger secondary\\xa\");"),
+               EXEC("fireMode = 0; printf(\"Fire Mode 0: Pre-trigger no fire\\xa\");")));
+  
+  // *** Bottom right button, original DX5
+  MapKey(&Joystick, VTG7, system("spawn \"C:\\Program Files\\AutoHotkey\" \"C:\\Program Files\\AutoHotkey\\AutoHotkey.exe\" \"C:\\Relax\\hotas\\firemode.ahk\""));
 
   // *** Pinkie switch, original DX7
   // *** Modifier & flight/drive assist toggle on double-click
@@ -365,11 +373,11 @@ int main() {
   MapKey(&Throttle, BSB, CHAIN(PULSE+landingGear, LED(&Throttle, LED_ONOFF, LED_CURRENT+LED5)));
   MapKeyR(&Throttle, BSB, CHAIN(PULSE+landingGear, LED(&Throttle, LED_ONOFF, LED_CURRENT+LED5)));
   */
-  MapKey(&Throttle, BSF, CHAIN(PULSE+cargoScoop));
-  MapKeyR(&Throttle, BSF, CHAIN(PULSE+cargoScoop));
+  MapKey(&Throttle, BSF, EXEC("if(!Joystick[VPNK]) ActKey(KEYON+PULSE+cargoScoop);"));
+  MapKeyR(&Throttle, BSF, EXEC("if(!Joystick[VPNK]) ActKey(KEYON+PULSE+cargoScoop);"));
   MapKey(&Throttle, BSM, 0);
   MapKey(&Throttle, BSB, EXEC("if(!Joystick[VPNK]) ActKey(KEYON+PULSE+landingGear);"));
-  MapKeyR(&Throttle, BSB, EXEC("if(!Joystick[VPNK]) AlctKey(KEYON+PULSE+landingGear);"));
+  MapKeyR(&Throttle, BSB, EXEC("if(!Joystick[VPNK]) ActKey(KEYON+PULSE+landingGear);"));
   
   // *** China Hat CH
   // *** Frameshift Drive & Hyperspace Jump 
@@ -386,11 +394,13 @@ int main() {
   MapKey(&Throttle, FLAPD, extCamera );
   MapKeyR(&Throttle, FLAPU, exitFreeCameraMode);
 
+  // MOVE TO FUEL CONTROL, nav & night light here
   // *** Enhanced Attitude Control EAC, original DX65-DX66
   // *** Toggle Orbit Lines
   MapKey(&Throttle, EACON, CHAIN(PULSE+toggleOrbitLines));
   MapKey(&Throttle, EACOFF, CHAIN(PULSE+toggleOrbitLines));
 
+  // MOVE TO FUEL CONTROL
   // *** RDR ALTM RDRNRM/RDRDIS, orignal DX67-DX68
   // *** Rotation correction  
   MapKey(&Throttle, RDRNRM, CHAIN(PULSE+rotationalCorrection));
@@ -442,6 +452,7 @@ int main() {
   MapKeyIO(&Throttle, APUOFF, CHAIN(PULSE+disconnectPS),
                               CHAIN(PULSE+silentRun));
 
+  // screenshot and video capture goes here
   // *** Engine Operate Ign/Norm Left EOL, original DX76-DX78
   // *** Navigation lights & Night vision TODO blinking on landing
   MapKey(&Throttle, EOLIGN,
@@ -462,6 +473,7 @@ int main() {
   MapKey(&Throttle, EORMOTOR, EXEC("if(!Joystick[VPNK]) ActKey(KEYON+PULSE+nightVision);"));
   MapKeyR(&Throttle, EORMOTOR, EXEC("if(!Joystick[VPNK]) ActKey(KEYON+PULSE+nightVision);"));
 
+  // rotCorrection & orbital lines
   // *** Engine Fuel Flow Switches Left EFL, original DX82-DX83
   // *** Full Spectrum Scanner
   MapKey(&Throttle, EFLNORM,  PULSE+fssEnter);

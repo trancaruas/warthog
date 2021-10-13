@@ -1,10 +1,10 @@
 // Keybindings
 define PinkyTriggerDefault    VPNK
 
-// Thottle mode switch 
-define throttleUpKey SPDF
-define throttleMidKey SPDM
-define throttleDownKey SPDB
+// Thottle mode switch, Speedbreak
+define throttleUpKey          SPDF
+define throttleMidKey         SPDM
+define throttleDownKey        SPDB
 
 // Primary & Secondary fire
 define primaryFire            USB[0x58]               // Num Enter
@@ -23,7 +23,7 @@ define targetNextRoute        L_CTL+USB[0x17]         // Ctrl + T
 
 // Weapon management
 define deployHardpoints       USB[0x18]               // U
-define firegroupNext          R_SHIFT+USB[0x37]               // .
+define firegroupNext          R_SHIFT+USB[0x37]       // .
 define firegroupPrev          L_SHIFT+USB[0x37]       // Shift + .
 
 // Misc
@@ -173,11 +173,11 @@ define fssHelp                USB[0x06]               // C
 //define multiCrewCycleUIBack	   
 
 // Wings & Fighters
-define selectWingman1         USB[0x25]                  // 8
-define selectWingman2         USB[0x26] 	               // 9
-define selectWingman3         USB[0x27] 	               // 0
-define wingmanTarget          USB[0x0C]                  // I
-define wingmanNavlock         L_SHIFT+USB[0x23]          // Shift + I
+define selectWingman1         USB[0x25]                // 8
+define selectWingman2         USB[0x26] 	           // 9
+define selectWingman3         USB[0x27] 	           // 0
+define wingmanTarget          USB[0x0C]                // I
+define wingmanNavlock         L_SHIFT+USB[0x23]        // Shift + I
 define fighterOpen            L_CTL+KP5	               // Ctrl + Num 5
 define fighterDock            L_CTL+KP2	               // Ctrl + Num 2
 define fighterDefend          L_CTL+KP1	               // Ctrl + Num 1
@@ -272,7 +272,7 @@ define VH1D                   23
 define VH1L                   24
 define VPNK                   25
 define VBRK                   26
-define VARM                   27                    // Flip Trigger Wwitch
+define VARM                   27                    // Flip Trigger Switch
 define VMISC                  28                    // 28 is not used
 define VH2U                   29
 define VH2R                   30

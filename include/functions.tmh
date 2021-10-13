@@ -20,14 +20,17 @@ define csLED 4
 define lgLED 5
 */
 
-define CruiseOnThrottle 	1	// Enable Supercruise on Throttle @ 100% and 0% = 1 (default)	Disable = 0  [HOLD Pinky Trigger or CMS Hat to activate @ 100%/0%]
-define TFULL_DEADZONE		5						// Set the Throttle 'Full Range' Deadzone %	  (default = 5)	(Use the Device Analyzer to validate) (Note: Don't set this too high! [Max ~15%] It will intefer with the FSS tuning)
+define CruiseOnThrottle 	1	             // Enable Supercruise on Throttle @ 100% and 0% = 1 (default)	Disable = 0  [HOLD Pinky Trigger or CMS Hat to activate @ 100%/0%]
+define TFULL_DEADZONE		5				 // Set the Throttle 'Full Range' Deadzone % (default = 5)	(Use the Device Analyzer to validate) (Note: Don't set this too high! [Max ~15%] It will intefer with the FSS tuning)
 
 int pipMode                 = 2;             // 1: Pinky Audio control, 2: Long press audio control
 int DoubleTapPT             = 0;             // Tracks state of Double Tap function on Pinky Trigger
 int DoubleTapPTdown         = 0;
 int DoubleTapPOV            = 0;             // Tracks state of Double Tap POV 
-int panelMode               = 0;             // flag set when UI panel focused
+int panelMode               = 0;             // Flag set when UI panel focused
+int fireMode                = 0;             // Combined fire mode, 0: pre null      full primary+secondary
+                                             //                     1: pre primary   full primary+secondary
+                                             //                     2: pre secondary full primary+secondary
 
 int mThrottleFwdOnly, mThrottleFullScale, mThrottlePrecision, mThrottleFwdNonLinear, mThrottleFullNonLinear, mThrottleFullScaleCustom, mThrottleTrimmed;
 int SyncLEFTTHRAxis = 1;
