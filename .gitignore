@@ -1,5 +1,6 @@
 # Original files
 *.orig
+*.org
 
 # Emacs temp files
 *.*~

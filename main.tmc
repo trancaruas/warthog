@@ -4,13 +4,8 @@
 // -----------------------------------------------------------------------------
 //  Main script file
 //  Modified by: trancaruas
-//  Version:  0.5
+//  Version:  0.6
 //  Intended for use with Thrustmaster Warthog Throttle + Virpil VPC MongoosT-50CM2 Grip + Thrustmaster TFRPRudder
-
-/*
-https://github.com/zeplintwo/AnalogWASD-2
-https://github.com/Touille/ED-Warthog-Target-Script
-*/
 
 include "target.tmh"                                 // Standard TM Header
 include "include/dx+.tmh"                            // DX++ Module
@@ -75,6 +70,8 @@ define LED4_BTN           BSF      // LED4 Controll Button ID
 define LED5_CONTROL       1        // Enable (1) or Disable (0) Controlled LED5
 define LED5_DEV           Throttle // LED5 Controll Button Device
 define LED5_BTN           BSB      // LED5 Controll Button ID
+
+// TODO MMapKey* function that detect keystroke name and automagically select device
 
 int main() {
   Configure( &HCougar,       MODE_EXCLUDED);
@@ -142,7 +139,6 @@ int main() {
 
   // *** Big Red Button, original DX3
   // *** UI Escape & Secondary fire
-  // TODO PS button
   MapKeyIO(&Joystick, VTG3,
            0,
            EXEC("if(panelMode) ActKey(KEYON+CHAIN(PULSE+UIEscape));"
@@ -150,7 +146,7 @@ int main() {
   MapKeyR(&Joystick, VTG3, EXEC("ActKey(KEYON+CHAIN(UP+secondaryFire));"));
 
   // *** Top right button, original DX5
-  // *** Switch fire mode. Pinky: reset to Fire Mode 0
+  // *** Switch fire mode. VTG6+Pinky: reset to Fire Mode 0
   MapKeyIO(&Joystick, VTG6,
            EXEC("fireMode = 0; printf(\"Fire Mode 0: Pre-trigger no fire\\xa\");"),
            SEQ(EXEC("fireMode = 1; printf(\"Fire Mode 1: Pre-trigger primary fire\\xa\");"),
@@ -166,7 +162,6 @@ int main() {
 
   // *** Break lever, original DX8
   // *** Temporary Flight Assist on/off
-  //MapKey(&Joystick, VBRK, CHAIN(KEYON+DOWN+flightAssist, LED(&Throttle, LED_ONOFF, LED_CURRENT+LED1)));
   MapKey(&Joystick, VBRK, CHAIN(KEYON+DOWN+flightAssist));
   MapKeyR(&Joystick, VBRK, CHAIN(KEYON+UP+flightAssist));
  
@@ -215,18 +210,19 @@ int main() {
   //OR
   // *** H3 Bottom Center HAT, original DX20=DX24
   // *** Target Management, long press - repead keystroke
-  // TODO MMapKey* function that detect keystroke name and automagically select device
-  MapKey(&Joystick, VH3P, TEMPO(EXEC("ActKey(KEYON+PULSE+targetAhead);"),
+  MapKey(&Joystick, VH3P, TEMPO(EXEC("if(!Joystick[VPNK]) ActKey(KEYON+PULSE+targetAhead);"
+                                     "else ActKey(KEYON+PULSE+wingmanTarget); "),
                                 EXEC("ActKey(KEYON+DOWN+targetAhead);"),
                                 250));
-  MapKeyR(&Joystick, VH3P, EXEC("ActKey(KEYON+UP+targetAhead);"));  
+  MapKeyR(&Joystick, VH3P, EXEC("ActKey(KEYON+UP+targetAhead);"));
   MapKey(&Joystick, VH3U, TEMPO(EXEC("if(!Joystick[VPNK]) ActKey(KEYON+PULSE+targetHighest);"
                                      "else ActKey(KEYON+PULSE+targetNextHostile);"),
                                 EXEC("ActKey(KEYON+DOWN+targetHighest);"),
                                 250));
   MapKeyR(&Joystick, VH3U, EXEC("ActKey(KEYON+UP+targetHighest);"));
-  MapKey(&Joystick, VH3D, TEMPO(EXEC("if(!Joystick[VPNK]) ActKey(KEYON+PULSE+targetNextRoute);"
-                                     "else ActKey(KEYON+PULSE+targetPrevHostile);"),
+  MapKey(&Joystick, VH3D, TEMPO(SEQ(EXEC("if(Joystick[VPNK]) ActKey(KEYON+PULSE+selectWingman3); else ActKey(KEYON+PULSE+targetNextRoute);"),
+                                    EXEC("if(Joystick[VPNK]) ActKey(KEYON+PULSE+selectWingman1); else ActKey(KEYON+PULSE+targetNextRoute);"),
+                                    EXEC("if(Joystick[VPNK]) ActKey(KEYON+PULSE+selectWingman2); else ActKey(KEYON+PULSE+targetNextRoute);")),
                                 EXEC("ActKey(KEYON+DOWN+targetNextRoute);"),
                                 250));
   MapKeyR(&Joystick, VH3D, EXEC("ActKey(KEYON+UP+targetNextRoute);"));
@@ -266,70 +262,20 @@ int main() {
 
   // *** Index finger HAT 2-way
   // *** Firegroup & Cockpit mode management
-  // TODO Combined primary&secondary fire toggle
-  // tg1 pre primary // tg2 primary + secondary // tg3 secondary
-  // tg3 toggle modes
-  // tg1 pre secondary // tg2 primary + secondary
-  // TODO Forward next subsystem / toggle fire mode
   MapKey(&Joystick, VH5B, EXEC("ActKey(KEYON+PULSE+firegroupNext);"));
   MapKey(&Joystick, VH5P, EXEC("ActKey(KEYON+PULSE+cockpitMode);"));
   MapKey(&Joystick, VH5F, EXEC("ActKey(KEYON+PULSE+firegroupPrev);"));
 
-  // https://github.com/Touille/ED-Warthog-Target-Script/blob/beta-3.3-Beyond-Chapter-Four-API/Thrustmaster%20Warthog%20Script/ED%2BHCS%20v3.3_Functions_TOGGLE.tmh
-  /*
-  int initToggleCombinedFire(){
-    sCombinedFire=!sCombinedFire;
-    if(sCombinedFire){	//Combine Primary & Secondary Fire on TG2
-      MapKey (&Joystick, TG2, EXEC("initFire();"));
-      MapKeyR(&Joystick, TG2, EXEC("initFire();"));
-    }
-    else{	//Separate Primary & Secondary Fire Press TG2 do Nothing
-      MapKey (&Joystick, TG2, 0);
-      MapKeyR(&Joystick, TG2, 0);
-    }
-    initLED(CombinedFire_LED, sCombinedFire);
-    if(DebugMode | DebugMMode) printf("Primary & Secondary Fire	[%d]	[COMBINED:[1] SEPARATE[0]]\x0a", sCombinedFire);
-  }
-  */
 
   // --------------------------- Throttle Mapping ------------------------------
 
-  // *** Throttle Pinky Switch
-  // TODO Hide ship GUI / Hide UI ? 
+  // *** Throttle Pinky Switch, original DX13-DX14. PTT / Discord
   MapKey(&Throttle, PSF,  CHAIN(LOCK+PULSE+extCamera, D(150), PULSE+hideCameraGUI, LOCK));
   MapKeyR(&Throttle, PSF,  PULSE+extCamera);
   MapKey(&Throttle, PSM,  0);
   MapKey(&Throttle, PSB, CHAIN(LOCK+PULSE+extCamera, D(150), PULSE+enterFreeCameraMode, D(150), PULSE+hideCameraGUI, LOCK));
-  MapKeyR(&Throttle, PSB, PULSE+extCamera); // chain exit free-> exit cam, 
+  MapKeyR(&Throttle, PSB, PULSE+extCamera);
 
-  /*
-    https://github.com/Touille/ED-Warthog-Target-Script/blob/beta-3.3-Beyond-Chapter-Four-API/Thrustmaster%20Warthog%20Script/ED%2BHCS%20v3.3_API_TCP.tmh
-
-  // TOGGLE: Voice Attack Mic
-  int initToggleVoiceAttackMic(){
-    if(VoiceAttack){
-      sVoiceAttack=!sVoiceAttack;
-      ActKey(KEYON+PULSE+ToggleVoiceAttackMic);
-      initLED(VA_LED, sVoiceAttack);
-      if(DebugMode | DebugMMode) printf("Voice Attack Mic	[%d]	[MUTE:[1] UNMUTE:[0]]\x0a", sVoiceAttack);
-    }
-  }
-
-  // TOGGLE: PTT/PTP
-  int initTogglePTTPTP(){
-    sPTTMode=!sPTTMode;
-    initLED(PTTMode_LED, sPTTMode);
-    if(DebugMode | DebugMMode) printf("PTTMode Change	[%d]	[HOLD:[0] TOGGLE:[1]]\x0a", sPTTMode);
-  }
-	
-  // TOGGLE: External/Internal Voice
-  int initTogglePTTMode(){
-    sPTTState=!sPTTState;
-    initLED(PTT_LED, sPTTState);
-    if(DebugMode | DebugMMode) printf("Mic Change		[%d]	[External:[0]Internal:[1]]\x0a", sPTTState);
-  }	
-  */
-  
   // *** Slew Control Push SC, original DX40
   MapKey(&Throttle, SC, DX40 );
   //MapKey(&Throttle, SC, EXEC("ActKey(KEYON+PULSE+engineBoost);"));
@@ -337,13 +283,8 @@ int main() {
   // *** Left Throttle Button (RED) LTB, original DX44
   MapKey(&Throttle, LTB, EXEC("ActKey(KEYON+PULSE+engineBoost);"));
   
-  // *** Coolie Hat Switch CS, orbital external camera, original DX45-DX48
-  /*
-  MapKey(&Throttle, CSU, DX45 );
-  MapKey(&Throttle, CSD, DX46 );
-  MapKey(&Throttle, CSR, DX47 );
-  MapKey(&Throttle, CSL, DX48 );
-  */
+  // *** Coolie Hat Switch CS, original DX45-DX48
+  // *** Orbital external camera
   MapKey(&Throttle, CSR, EXEC("DXAxis(DX_X_AXIS, -32000); DXAxis(DX_XROT_AXIS, 32000);" ));
   MapKey(&Throttle, CSL, EXEC("DXAxis(DX_X_AXIS, 32000); DXAxis(DX_XROT_AXIS, -32000);" ) );
   MapKeyR(&Throttle, CSR, EXEC("DXAxis(DX_X_AXIS, 0); DXAxis(DX_XROT_AXIS, 0);" ));
@@ -366,13 +307,6 @@ int main() {
 
   // *** Boat Switch BS
   // *** Cargo scoop & Landing gear
-  /*
-  MapKey(&Throttle, BSF, CHAIN(PULSE+cargoScoop, LED(&Throttle, LED_ONOFF, LED_CURRENT+LED4)));
-  MapKeyR(&Throttle, BSF, CHAIN(PULSE+cargoScoop, LED(&Throttle, LED_ONOFF, LED_CURRENT+LED4)));
-  MapKey(&Throttle, BSM, 0);
-  MapKey(&Throttle, BSB, CHAIN(PULSE+landingGear, LED(&Throttle, LED_ONOFF, LED_CURRENT+LED5)));
-  MapKeyR(&Throttle, BSB, CHAIN(PULSE+landingGear, LED(&Throttle, LED_ONOFF, LED_CURRENT+LED5)));
-  */
   MapKey(&Throttle, BSF, EXEC("if(!Joystick[VPNK]) ActKey(KEYON+PULSE+cargoScoop);"));
   MapKeyR(&Throttle, BSF, EXEC("if(!Joystick[VPNK]) ActKey(KEYON+PULSE+cargoScoop);"));
   MapKey(&Throttle, BSM, 0);
@@ -380,31 +314,28 @@ int main() {
   MapKeyR(&Throttle, BSB, EXEC("if(!Joystick[VPNK]) ActKey(KEYON+PULSE+landingGear);"));
   
   // *** China Hat CH
-  // *** Frameshift Drive & Hyperspace Jump 
-  //MapKey(&Throttle, CHF, CHAIN(PULSE+hyperspaceJump, KEYON+PULSE+LedOn(rcLED)));
+  // *** Frameshift Drive, Hyperspace Jump & Wingman Navlock
   MapKey(&Throttle, CHF, EXEC("if(!Joystick[VPNK]) ActKey(KEYON+PULSE+superCruise);"
                               "else ActKey(KEYON+PULSE+frameshiftDrive);"));
-  //MapKey(&Throttle, CHM, CHAIN(PULSE+ LED(&Throttle, LED_ONOFF, LED_CURRENT+LED5)));
   MapKey(&Throttle, CHM, 0);
-  MapKey(&Throttle, CHB, PULSE+hyperspaceJump);
+  MapKey(&Throttle, CHB, EXEC("if(!Joystick[VPNK]) ActKey(KEYON+PULSE+hyperspaceJump);"
+                              "else ActKey(KEYON+PULSE+wingmanNavlock);"));
   
   // *** Flaps FLAP, original DX62-DX64
-  // *** Camera Suit Control
-  MapKey(&Throttle, FLAPU, enterFreeCameraMode);
-  MapKey(&Throttle, FLAPD, extCamera );
-  MapKeyR(&Throttle, FLAPU, exitFreeCameraMode);
-
-  // MOVE TO FUEL CONTROL, nav & night light here
+  // *** Camera Int/Ext
+  MapKey(&Throttle, FLAPU, CHAIN(LOCK+PULSE+extCamera, D(150), PULSE+hideCameraGUI, LOCK));
+  MapKey(&Throttle, FLAPM, PULSE+extCamera );
+  MapKeyR(&Throttle, FLAPD, CHAIN(LOCK+PULSE+extCamera, D(150), PULSE+enterFreeCameraMode, D(150), PULSE+hideCameraGUI, LOCK));
+  
   // *** Enhanced Attitude Control EAC, original DX65-DX66
-  // *** Toggle Orbit Lines
-  MapKey(&Throttle, EACON, CHAIN(PULSE+toggleOrbitLines));
-  MapKey(&Throttle, EACOFF, CHAIN(PULSE+toggleOrbitLines));
-
-  // MOVE TO FUEL CONTROL
+  // *** Navigational Lights
+  MapKey(&Throttle, EACON, CHAIN(PULSE+navLight));
+  MapKey(&Throttle, EACOFF, CHAIN(PULSE+navLight));
+        
   // *** RDR ALTM RDRNRM/RDRDIS, orignal DX67-DX68
-  // *** Rotation correction  
-  MapKey(&Throttle, RDRNRM, CHAIN(PULSE+rotationalCorrection));
-  MapKey(&Throttle, RDRDIS, CHAIN(PULSE+rotationalCorrection));
+  // *** Night Vision
+  MapKey(&Throttle, RDRNRM, CHAIN(PULSE+nightVision));
+  MapKey(&Throttle, RDRDIS, CHAIN(PULSE+nightVision));
 
   // *** Autopilot Engage Button AP, original DX69
   // *** TODO Initiate docking request
@@ -432,8 +363,8 @@ int main() {
   // *** Galaxy Map | System Map
   MapKey(&Throttle, APPAT, EXEC("if(!Joystick[VPNK]) ActKey(KEYON+PULSE+galaxyMap);"));
   MapKeyR(&Throttle, APPAT, EXEC("if(!Joystick[VPNK]) ActKey(KEYON+PULSE+galaxyMap);"));
-  MapKey(&Throttle, APALT, EXEC("if(!Joystick[VPNK]) ActKey(KEYON+PULSE+systemMap);"));
-  MapKeyR(&Throttle, APALT, EXEC("if(!Joystick[VPNK]) ActKey(KEYON+PULSE+systemMap);"));
+  MapKey(&Throttle, APALT, EXEC("if(!Joystick[VPNK]) ActKey(KEYON+PULSE+systemMap); else ActKey(KEYON+PULSE+fssEnter);"));
+  MapKeyR(&Throttle, APALT, EXEC("if(!Joystick[VPNK]) ActKey(KEYON+PULSE+systemMap); else ActKey(KEYON+PULSE+fssExit);"));
 
   // *** Landing Gear / Warning Horn Silence Button LDGH, orignal DX73
   MapKey(&Throttle, LDGH, EXEC("ActKey(KEYON+PULSE+toggleOrbitLines);"));
@@ -441,50 +372,46 @@ int main() {
   // *** APU Start APUON | APUOFF, original DX74-DX75
   // *** Silent run | Shifted Connect to PS4
   // TODO heat sink launch program
-  /*
-  MapKeyIO(&Throttle, APUON, CHAIN(PULSE+CAPS, EXEC("BlinkToOn(srLED);")),            // connect to PS4
-      CHAIN(PULSE+silentRun, EXEC("BlinkToOn(srLED);")));      // silent run TODO heat sink launch program
-  MapKeyIO(&Throttle, APUOFF, CHAIN(PULSE+L_SHIFT+CAPS, EXEC("BlinkToOff(srLED);")),  // disconnect from PS4
-      CHAIN(PULSE+silentRun, EXEC("BlinkToOff(srLED);")));      // silent run off TODO heat sink launch program off
-  */
+  // TODO PS button
   MapKeyIO(&Throttle, APUON, CHAIN(PULSE+connectPS),
                              CHAIN(PULSE+silentRun));     
   MapKeyIO(&Throttle, APUOFF, CHAIN(PULSE+disconnectPS),
                               CHAIN(PULSE+silentRun));
 
-  // screenshot and video capture goes here
   // *** Engine Operate Ign/Norm Left EOL, original DX76-DX78
-  // *** Navigation lights & Night vision TODO blinking on landing
+  // *** Nvidia video capture
+  // TODO Long press
   MapKey(&Throttle, EOLIGN,
-      TEMPO(EXEC("ActKey(KEYON+PULSE+navLight);"),
-            EXEC("ActKey(KEYON+PULSE+navLight);"),
+      TEMPO(EXEC("ActKey(KEYON+PULSE+capture);"),
+            EXEC("ActKey(KEYON+PULSE+capture);"),
             500));
   MapKey(&Throttle, EOLNORM, 0);
-  MapKey(&Throttle, EOLMOTOR, PULSE+nightVision);
-  MapKeyR(&Throttle, EOLMOTOR, PULSE+nightVision);
+  MapKey(&Throttle, EOLMOTOR, PULSE+capture);
+  MapKeyR(&Throttle, EOLMOTOR, PULSE+capture);
 
-  // *** Engine Operate Ign/Norm Right EOR, original DX79-DX81
-  // *** TEMP Navigation lights & Night vision TODO blinking on landing
-  MapKey(&Throttle, EORIGN,
-      TEMPO(EXEC("ActKey(KEYON+PULSE+navLight);"),
-            EXEC("ActKey(KEYON+PULSE+navLight);"),
+  // *** Engine Operate Ign/Norm Right EOR, original DX79-DX81 
+  // *** Nvidia Screenshot
+  // TODO Long press
+  MapKey(&Throttle, EORIGN,                        // screenshot
+      TEMPO(EXEC("ActKey(KEYON+PULSE+screenshot);"),
+            EXEC("ActKey(KEYON+PULSE+screenshot);"),
             500));
   MapKey(&Throttle, EORNORM, 0);
-  MapKey(&Throttle, EORMOTOR, EXEC("if(!Joystick[VPNK]) ActKey(KEYON+PULSE+nightVision);"));
-  MapKeyR(&Throttle, EORMOTOR, EXEC("if(!Joystick[VPNK]) ActKey(KEYON+PULSE+nightVision);"));
+  MapKey(&Throttle, EORMOTOR, EXEC("if(!Joystick[VPNK]) ActKey(KEYON+PULSE+screenshot);"));
+  MapKeyR(&Throttle, EORMOTOR, EXEC("if(!Joystick[VPNK]) ActKey(KEYON+PULSE+screenshot);"));
 
-  // rotCorrection & orbital lines
   // *** Engine Fuel Flow Switches Left EFL, original DX82-DX83
-  // *** Full Spectrum Scanner
-  MapKey(&Throttle, EFLNORM,  PULSE+fssEnter);
-  MapKey(&Throttle, EFLOVER,  PULSE+fssExit);
+  // Rotation Correction
+  MapKey(&Throttle, EFLNORM,  CHAIN(PULSE+rotationalCorrection));
+  MapKey(&Throttle, EFLOVER,  CHAIN(PULSE+rotationalCorrection));
 
-  // *** Engine Fuel Flow Switches Right EFR
-  MapKey(&Throttle, EFROVER,  DX84 );
-  MapKey(&Throttle, EFRNORM,  DX85 );
+  // *** Engine Fuel Flow Switches Right EFR, original DX84-DX85
+  // *** Toggle Orbital Lines
+  MapKey(&Throttle, EFROVER,  PULSE+toggleOrbitLines );
+  MapKey(&Throttle, EFRNORM,  PULSE+toggleOrbitLines ); 
 
   // *** Throttle Idle Detents Left
-  MapKey(&Throttle, IDLERON,  DX86 );
+  MapKey(&Throttle, IDLERON,  DX86 ); 
   MapKey(&Throttle, IDLEROFF, DX87 );
 
   // *** Throttle Idle Detents Right
@@ -531,7 +458,6 @@ int main() {
 int EventHandle(int type, alias o, int x) {
     int TRPCOMBO;
 
-    //DefaultMapping(&o, x);
     PovMapping(&o, x);
     LDcMapping(&o, x);
 

@@ -177,7 +177,7 @@ define selectWingman1         USB[0x25]                // 8
 define selectWingman2         USB[0x26] 	           // 9
 define selectWingman3         USB[0x27] 	           // 0
 define wingmanTarget          USB[0x0C]                // I
-define wingmanNavlock         L_SHIFT+USB[0x23]        // Shift + I
+define wingmanNavlock         L_SHIFT+USB[0x0C]        // Shift + I
 define fighterOpen            L_CTL+KP5	               // Ctrl + Num 5
 define fighterDock            L_CTL+KP2	               // Ctrl + Num 2
 define fighterDefend          L_CTL+KP1	               // Ctrl + Num 1
@@ -189,14 +189,14 @@ define fighterFollow          L_CTL+KP6	               // Ctrl + Num 6
 
 // SRV
 /*
-define SRVHandbrake 		  USB[0x1B] 	               // X
+define SRVHandbrake 		  USB[0x1B] 	           // X
 define SRVTurret              USB[0x18]	               // U (same as deploy/retract Hardpoints
-define SRVVerticalThrust 	  USB[0x15]                  // R (same as boost)
-define SRVRecallDismissShip	  L_ALT+USB[0x1B]            // Alt + X
+define SRVVerticalThrust 	  USB[0x15]                // R (same as boost)
+define SRVRecallDismissShip	  L_ALT+USB[0x1B]          // Alt + X
 */
 
 // Camera suit              (Note: These are mapped in ED Bindings directly)
-define extCamera              USB[0x36]                  // ,
+define extCamera            USB[0x36]                  // ,
 define extCameraSRV	        USB[0x36]                  // ,
 //define previousCamera	    L_ALT+USB[0x1E]	           // LALT+1
 //define nextCamera	        L_ALT+USB[0x1F]	           // LALT+2
@@ -243,6 +243,9 @@ define connectPS              CAPS
 define disconnectPS           L_SHIFT+CAPS
 //define disconnectPS         PULSE+L_SHIFT+CAPS
 define radarClutter           USB[0x3A]             // F1 Mapped in EDHM
+define screenshot             L_ALT+USB[0x3C]       // Alt + F3, screenshot in Nvidia Control Panel
+define capture                L_ALT+USB[0x42]       // Alt + F9, video capture in Nvidia Control Panel
+
 
 // Virpil VPC MongoosT-50CM2 Grip 
 define VTG1                   0
